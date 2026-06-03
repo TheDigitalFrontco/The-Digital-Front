@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Digital Front — Social Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--grey-100); font-family: var(--font-sans); color: var(--fg1); padding: 40px 20px; }
+  .app { max-width: 940px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .topbar .left { display: flex; align-items: center; gap: 12px; }
+  .topbar .left img { width: 26px; }
+  .topbar .left .mktile { width: 40px; height: 40px; background: var(--blue-700); border-radius: 4px; display: grid; place-items: center; }
+  .topbar .left .mktile img { width: 27px; }
+  .topbar .left b { font-family: var(--font-display); font-weight: 500; font-size: 19px; white-space: nowrap; line-height: 1.05; }
+  .topbar .left .the { font-family: var(--font-mono); font-size: 9px; letter-spacing: .3em; text-transform: uppercase; color: var(--grey-500); display:block; line-height:1; }
+  .topbar .note { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; color: var(--grey-500); }
+  .panel { background: #fff; border: 1px solid var(--grey-200); border-radius: 6px; padding: 36px 40px; box-shadow: var(--shadow-1); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .cell { position: relative; cursor: pointer; transition: opacity .18s ease; border-radius: 2px; overflow: hidden; }
+  .cell:hover { opacity: .9; }
+  .stories { display: flex; gap: 18px; margin-top: 8px; flex-wrap: wrap; }
+  .lightbox { position: fixed; inset: 0; background: rgba(22,27,34,.78); display: none; place-items: center; z-index: 50; padding: 30px; }
+  .lightbox.on { display: grid; }
+  .lightbox .close { position: absolute; top: 22px; right: 26px; color: #fff; font-family: var(--font-mono); font-size: 22px; cursor: pointer; background:none;border:none; }
+  .caption { font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--grey-500); margin: 0 0 10px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="left">
+      <span class="mktile"><img src="../../assets/logo-source-cropped.png"></span>
+      <div><span class="the">The</span><b>Digital Front</b></div>
+    </div>
+    <div class="note">SOCIAL KIT · POST + STORY TEMPLATES</div>
+  </div>
+  <div class="panel">
+    <div id="root"></div>
+  </div>
+</div>
+<div class="lightbox" id="lb">
+  <button class="close" id="lbclose">✕ Close</button>
+  <div id="lbinner"></div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="Posts.jsx"></script>
+<script type="text/babel" src="Profile.jsx"></script>
+<script type="text/babel">
+const { useState } = React;
+
+const FEED = [
+  { C: PostStatement, label: 'Statement' },
+  { C: PostServices, label: 'Services' },
+  { C: PostQuote, label: 'Testimonial' },
+  { C: PostMark, label: 'Identity' },
+  { C: PostStatement, label: 'Statement' },
+  { C: PostServices, label: 'Services' },
+];
+
+let boxRoot;
+function mountBox(node) {
+  const el = document.getElementById('lbinner');
+  if (!boxRoot) boxRoot = ReactDOM.createRoot(el);
+  boxRoot.render(node);
+}
+
+// bridge: re-render lightbox when App calls openBox via setBox
+function AppWrap() {
+  const [box, setBox] = React.useState(null);
+  React.useEffect(() => { if (box) mountBox(box); }, [box]);
+  const open = (n) => { setBox(n); document.getElementById('lb').classList.add('on'); };
+  const [tab, setTab] = React.useState('Feed');
+  return (
+    <div>
+      <ProfileBar tab={tab} onTab={setTab} />
+      {tab === 'Feed' && (
+        <div className="grid">
+          {FEED.map((p, i) => (
+            <div className="cell" key={i} onClick={() => open(<div><p className="caption">{p.label}</p><p.C display={760} /></div>)}>
+              <p.C display={272} />
+            </div>
+          ))}
+        </div>
+      )}
+      {tab === 'Stories' && (
+        <div className="stories">
+          {[0,1].map(i => (
+            <div className="cell" key={i} onClick={() => open(<div><p className="caption">Story</p><StoryStatement display={440} /></div>)}>
+              <StoryStatement display={208} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+document.getElementById('lbclose').onclick = () => document.getElementById('lb').classList.remove('on');
+document.getElementById('lb').onclick = (e) => { if (e.target.id === 'lb') document.getElementById('lb').classList.remove('on'); };
+
+ReactDOM.createRoot(document.getElementById('root')).render(<AppWrap />);
+</script>
+</body>
+</html>

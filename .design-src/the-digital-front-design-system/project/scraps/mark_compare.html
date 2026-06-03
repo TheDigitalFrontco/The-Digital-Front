@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf8"><style>
+body{margin:0;background:#fff;display:flex;gap:0}
+.col{width:50vw;height:100vh;display:grid;place-items:center}
+.col.b{background:#3E587F}
+svg{width:78vmin;height:78vmin}
+img{width:78vmin;height:78vmin;object-fit:contain}
+</style></head><body>
+<div class="col"><svg viewBox="0 0 935 1000" id="s"></svg></div>
+<div class="col b"><img src="../scraps/realmark_clean.png"></div>
+<script>
+const A = "M 0 0 L 935 0 L 889 185 L 150 185 L 150 840 L 0 935 Z";
+const B = "M 262 268 L 410 268 L 410 725 L 262 738 Z";
+const C = "M 519 373 L 868 373 L 882 402 L 882 521 C 882 700 818 902 540 1000 L 478 1000 C 478 872 642 712 706 600 L 706 521 L 519 521 Z";
+document.getElementById('s').innerHTML =
+  `<path fill="#3E587F" d="${A}"/><path fill="#3E587F" d="${B}"/><path fill="#3E587F" d="${C}"/>`;
+</script>
+</body></html>

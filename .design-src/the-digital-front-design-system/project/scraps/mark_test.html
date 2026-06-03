@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf8"><style>
+body{margin:0;display:grid;grid-template-columns:1fr 1fr;background:#fff;font-family:sans-serif}
+.cell{height:50vh;display:grid;place-items:center}
+.blue{background:#3E587F}
+svg{width:220px;height:220px}
+.white{color:#fff}.bk{color:#3E587F}
+</style></head><body>
+<div class="cell"><svg viewBox="0 0 120 120" class="bk" id="m"></svg></div>
+<div class="cell blue"><svg viewBox="0 0 120 120" class="white"><use href="#p"/></svg></div>
+<script>
+const P = `
+<path id="p" fill="currentColor" d="
+M14 22 H86 V42 H34 V72 H14 Z
+M62 42 H86 V80 Q86 106 60 106 H40 V86 H58 Q66 86 66 78 V42 Z
+"/>`;
+document.getElementById('m').innerHTML = P;
+</script>
+</body></html>

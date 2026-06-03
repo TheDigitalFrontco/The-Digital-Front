@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Digital Front — Social Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: #fff; }
+  body { font-family: var(--font-sans); color: var(--fg1); }
+  .page { width: 100%; min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+          justify-content: center; padding: 48px 40px; break-after: page; break-inside: avoid; }
+  .page:last-child { break-after: auto; }
+  .head { width: 100%; max-width: 780px; display: flex; align-items: center; justify-content: space-between;
+          margin-bottom: 26px; }
+  .head .left { display: flex; align-items: center; gap: 12px; }
+  .head .mktile { width: 38px; height: 38px; background: var(--blue-700); border-radius: 4px; display: grid; place-items: center; }
+  .head .mktile img { width: 26px; }
+  .head .the { font-family: var(--font-mono); font-size: 9px; letter-spacing: .3em; text-transform: uppercase; color: var(--grey-500); display: block; line-height: 1; }
+  .head b { font-family: var(--font-display); font-weight: 500; font-size: 18px; white-space: nowrap; line-height: 1.05; }
+  .head .meta { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--grey-500); text-align: right; }
+  .head .meta .dim { color: var(--grey-400); margin-top: 3px; }
+  .frame-wrap { border: 1px solid var(--grey-200); border-radius: 4px; overflow: hidden; box-shadow: var(--shadow-1); }
+  .cover { width: 100%; max-width: 780px; }
+  .cover .kick { font-family: var(--font-mono); font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--blue-500); }
+  .cover h1 { font-family: var(--font-display); font-weight: 500; font-size: 64px; line-height: .98; letter-spacing: -.02em; color: var(--blue-950); margin: 18px 0 0; }
+  .cover h1 em { font-style: italic; font-weight: 400; }
+  .cover p { font-family: var(--font-sans); font-size: 18px; line-height: 1.6; color: var(--grey-600); margin: 22px 0 0; max-width: 540px; }
+  .cover .rule { height: 2px; background: var(--blue-200); margin: 40px 0 26px; }
+  .cover .index { font-family: var(--font-mono); font-size: 13px; color: var(--grey-500); line-height: 2; }
+  .cover .index span { color: var(--blue-700); }
+  @media print {
+    @page { size: portrait; margin: 0.5cm; }
+    html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { min-height: auto; height: 100vh; padding: 24px; }
+    .frame-wrap { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="Posts.jsx"></script>
+<script type="text/babel">
+const LOGO = '../../assets/logo-source-cropped.png';
+
+function Head({ label, dim }) {
+  return (
+    <div className="head">
+      <div className="left">
+        <span className="mktile"><img src={LOGO} /></span>
+        <div><span className="the">The</span><b>Digital Front</b></div>
+      </div>
+      <div className="meta">{label}<div className="dim">{dim}</div></div>
+    </div>
+  );
+}
+
+const SQUARE = [
+  { C: PostStatement, label: 'Post · Statement', dim: '1080 × 1080' },
+  { C: PostServices, label: 'Post · Services', dim: '1080 × 1080' },
+  { C: PostQuote, label: 'Post · Testimonial', dim: '1080 × 1080' },
+  { C: PostMark, label: 'Post · Identity', dim: '1080 × 1080' },
+];
+
+function Cover() {
+  return (
+    <div className="page">
+      <div className="cover">
+        <div className="kick">Social Kit · IG / FB</div>
+        <h1>Ideas into <em>reality.</em></h1>
+        <p>The Digital Front's post &amp; story templates — the studio's primary output surface. One idea per graphic, white-on-blue by default.</p>
+        <div className="rule"></div>
+        <div className="index">
+          <span>01</span> &nbsp;Statement &nbsp;·&nbsp; <span>02</span> &nbsp;Services &nbsp;·&nbsp; <span>03</span> &nbsp;Testimonial<br/>
+          <span>04</span> &nbsp;Identity &nbsp;·&nbsp; <span>05</span> &nbsp;Story
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <div>
+      <Cover />
+      {SQUARE.map((p, i) => (
+        <div className="page" key={i}>
+          <Head label={p.label} dim={p.dim} />
+          <div className="frame-wrap"><p.C display={680} /></div>
+        </div>
+      ))}
+      <div className="page">
+        <Head label="Story · Statement" dim="1080 × 1920" />
+        <div className="frame-wrap"><StoryStatement display={400} /></div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+// Auto-print once fonts + JSX are ready
+window.addEventListener('load', () => {
+  const go = () => setTimeout(() => window.print(), 600);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   THE DIGITAL FRONT — Tailwind v4 theme, built directly from the design
+   system's colors_and_type.css. Exposes brand fonts + colors as utilities
+   (font-display, bg-blue-700, text-grey-500, …). Raw token names (--blue-700,
+   --t-display, --ease-df) live in the :root block below for direct use.
+   ========================================================================== */
+@theme {
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Hanken Grotesk', -apple-system, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;
+
+  --color-blue-50: #eef2f8;
+  --color-blue-100: #dce3ef;
+  --color-blue-200: #c2cfe2;
+  --color-blue-300: #9fb1cd;
+  --color-blue-400: #768fb5;
+  --color-blue-500: #4f6e9b;
+  --color-blue-600: #46618a;
+  --color-blue-700: #3e587f;
+  --color-blue-800: #344a6a;
+  --color-blue-900: #2a3c56;
+  --color-blue-950: #1e2c40;
+
+  --color-grey-50: #f7f8fa;
+  --color-grey-100: #eff1f4;
+  --color-grey-200: #e2e6ec;
+  --color-grey-300: #cbd1da;
+  --color-grey-400: #a4acb9;
+  --color-grey-500: #79828f;
+  --color-grey-600: #5a626e;
+  --color-grey-700: #3f4651;
+  --color-grey-800: #2a2f38;
+  --color-grey-900: #161b22;
+
+  --color-snow: #ffffff;
+  --color-positive: #4f7e6b;
+  --color-caution: #b08a4a;
+  --color-critical: #a85a52;
+
+  --radius-df-1: 2px;
+  --radius-df-2: 4px;
+  --radius-df-3: 8px;
+
+  /* Brand motion — calm, confident ease-out (never bouncy) */
+  --ease-df: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ============================================================================
+   Core tokens (ported verbatim from colors_and_type.css)
+   ========================================================================== */
+:root {
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Hanken Grotesk', -apple-system, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;
+
+  --blue-50: #eef2f8;
+  --blue-100: #dce3ef;
+  --blue-200: #c2cfe2;
+  --blue-300: #9fb1cd;
+  --blue-400: #768fb5;
+  --blue-500: #4f6e9b; /* brand light anchor */
+  --blue-600: #46618a;
+  --blue-700: #3e587f; /* brand deep anchor — primary */
+  --blue-800: #344a6a;
+  --blue-900: #2a3c56;
+  --blue-950: #1e2c40; /* near-charcoal navy — deepest bg */
+
+  --white: #ffffff;
+  --grey-50: #f7f8fa;
+  --grey-100: #eff1f4;
+  --grey-200: #e2e6ec;
+  --grey-300: #cbd1da;
+  --grey-400: #a4acb9;
+  --grey-500: #79828f;
+  --grey-600: #5a626e;
+  --grey-700: #3f4651;
+  --grey-800: #2a2f38;
+  --grey-900: #161b22;
+
+  --positive: #4f7e6b;
+  --caution: #b08a4a;
+  --critical: #a85a52;
+
+  --r-0: 0px;
+  --r-1: 2px;
+  --r-2: 4px;
+  --r-3: 8px;
+  --r-pill: 999px;
+
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 128px;
+
+  --shadow-1: 0 1px 2px rgba(30, 44, 64, 0.06), 0 1px 1px rgba(30, 44, 64, 0.04);
+  --shadow-2: 0 4px 14px rgba(30, 44, 64, 0.08);
+  --shadow-3: 0 18px 48px rgba(30, 44, 64, 0.12);
+  --border-hairline: 1px solid var(--grey-200);
+
+  --t-display: 76px;   --lh-display: 0.98; --ls-display: -0.02em;
+  --t-h1: 52px;        --lh-h1: 1.02;      --ls-h1: -0.018em;
+  --t-h2: 38px;        --lh-h2: 1.06;      --ls-h2: -0.014em;
+  --t-h3: 27px;        --lh-h3: 1.16;      --ls-h3: -0.01em;
+  --t-lead: 21px;      --lh-lead: 1.5;
+  --t-body: 17px;      --lh-body: 1.62;
+  --t-small: 14px;     --lh-small: 1.5;
+  --t-kicker: 12.5px;  --ls-kicker: 0.22em;
+
+  --ease-df: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Semantic — LIGHT (default) */
+  --bg: var(--white);
+  --bg-subtle: var(--grey-50);
+  --surface: var(--white);
+  --fg1: var(--blue-950);
+  --fg2: var(--grey-600);
+  --fg3: var(--grey-500);
+  --accent: var(--blue-700);
+  --accent-2: var(--blue-500);
+  --on-accent: var(--white);
+  --border: var(--grey-200);
+  --border-strong: var(--grey-300);
+  --texture: rgba(62, 88, 127, 0.1);
+}
+
+[data-theme="dark"] {
+  --bg: var(--blue-950);
+  --bg-subtle: var(--blue-900);
+  --surface: var(--blue-900);
+  --fg1: var(--white);
+  --fg2: var(--blue-200);
+  --fg3: #8fa3c0;
+  --accent: var(--white);
+  --accent-2: var(--blue-300);
+  --on-accent: var(--blue-800);
+  --border: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.26);
+  --texture: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="brand"] {
+  --bg: var(--blue-700);
+  --bg-subtle: var(--blue-800);
+  --surface: var(--blue-600);
+  --fg1: var(--white);
+  --fg2: var(--blue-100);
+  --fg3: var(--blue-200);
+  --accent: var(--white);
+  --accent-2: var(--blue-200);
+  --on-accent: var(--blue-700);
+  --border: rgba(255, 255, 255, 0.18);
+  --border-strong: rgba(255, 255, 255, 0.3);
+  --texture: rgba(255, 255, 255, 0.09);
+}
+
+/* ============================================================================
+   Typographic helpers (.df-*) — responsive via clamp() for mobile-first
+   ========================================================================== */
+.df-display {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(2.75rem, 9vw, 4.75rem);
+  line-height: var(--lh-display); letter-spacing: var(--ls-display);
+  color: var(--fg1); text-wrap: balance;
+}
+.df-h1 {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(2.25rem, 6vw, 3.25rem);
+  line-height: var(--lh-h1); letter-spacing: var(--ls-h1);
+  color: var(--fg1); text-wrap: balance;
+}
+.df-h2 {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(1.75rem, 4.5vw, 2.375rem);
+  line-height: var(--lh-h2); letter-spacing: var(--ls-h2);
+  color: var(--fg1); text-wrap: balance;
+}
+.df-h3 {
+  font-family: var(--font-sans); font-weight: 700;
+  font-size: clamp(1.25rem, 3vw, 1.6875rem);
+  line-height: var(--lh-h3); letter-spacing: var(--ls-h3); color: var(--fg1);
+}
+.df-lead {
+  font-family: var(--font-sans); font-weight: 400;
+  font-size: clamp(1.0625rem, 2vw, 1.3125rem);
+  line-height: var(--lh-lead); color: var(--fg2); text-wrap: pretty;
+}
+.df-body {
+  font-family: var(--font-sans); font-weight: 400; font-size: var(--t-body);
+  line-height: var(--lh-body); color: var(--fg2); text-wrap: pretty;
+}
+.df-small {
+  font-family: var(--font-sans); font-weight: 500; font-size: var(--t-small);
+  line-height: var(--lh-small); color: var(--fg3);
+}
+.df-kicker {
+  font-family: var(--font-mono); font-weight: 500; font-size: var(--t-kicker);
+  letter-spacing: var(--ls-kicker); text-transform: uppercase; color: var(--accent-2);
+}
+.df-em { font-family: var(--font-display); font-style: italic; font-weight: 400; }
+
+/* ============================================================================
+   Base
+   ========================================================================== */
+/* No CSS `scroll-behavior: smooth` — GSAP (ScrollSmoother / ScrollToPlugin) owns
+   scrolling; native smooth-scroll fights it. */
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body { margin: 0; background: var(--bg); color: var(--fg1); font-family: var(--font-sans); }
+
+/* Faint digital texture utilities (≤7% contrast, used with restraint) */
+.df-texture-grid {
+  background-image:
+    linear-gradient(var(--texture) 1px, transparent 1px),
+    linear-gradient(90deg, var(--texture) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+.df-texture-dots {
+  background-image: radial-gradient(var(--texture) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+}
+
+/* Testimonial progress bar fill (scaleX 0→1 over the autoplay interval). */
+@keyframes tw-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================================
+   What We Build — horizontal sweep tiles
+   ========================================================================== */
+/* Each tile shows a clip at its own aspect ratio (--ar = width ÷ height). In the
+   sideways sweep the tile is sized to FIT INSIDE the viewport box, so the whole
+   clip is visible on any screen: height is capped at the sweep height AND at
+   ~88vw worth of width (whichever binds first), with the other dimension
+   following the aspect. On a wide desktop the height cap binds (tall tiles); on
+   a narrow phone the width cap binds, shrinking a wide clip until it fits rather
+   than overflowing off-screen. Width derivation + the sweep itself are unchanged. */
+@media (prefers-reduced-motion: no-preference) {
+  .work-tile {
+    height: min(64svh, 77vw / var(--ar)); /* phones: narrower cap so the stacked 01–03 trio matches the 04 clip's width */
+  }
+}
+/* From 1025px up (desktop + iPad landscape) the trio un-stacks into the flat
+   filmstrip row, where every clip sits at the same height (64svh) — its width
+   just follows its native shape and scrolls, with no cap so heights always match
+   regardless of viewport width. iPad Pro 12.9" portrait is 1024px, so it falls
+   just under this and stacks with the other portrait iPads (see the rule below). */
+@media (prefers-reduced-motion: no-preference) and (min-width: 1025px) {
+  .work-tile {
+    height: 64svh;
+  }
+}
+/* Phones & iPad portrait — incl. iPad Pro 12.9" portrait (1024px) — stack the
+   trio: size 01–03 by WIDTH so their three native-AR heights PLUS the two gaps
+   add up to exactly 64svh — i.e. the stacked column matches the 04 clip and the
+   "Your project here" card beside it. 1.785 = sum of height÷width for the three
+   clips (0.5625 + 0.4949 + 0.7275); 2.5rem = the two gap-5 gaps. Update 1.785 if
+   these clips' aspect ratios change. */
+@media (prefers-reduced-motion: no-preference) and (max-width: 1024px) {
+  .work-stack .work-tile {
+    width: calc((64svh - 2.5rem) / 1.785);
+    height: auto;
+  }
+}
