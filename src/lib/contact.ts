@@ -27,4 +27,5 @@ export const WEB3FORMS_ACCESS_KEY = '30ff3b82-9b29-47c5-acd4-8424290e248a'
 export const SOCIALS = [
   { label: '@thedigitalfront.co', href: 'https://instagram.com/thedigitalfront.co', platform: 'instagram' },
   { label: '@thedigitalfront', href: 'https://tiktok.com/@thedigitalfront', platform: 'tiktok' },
+  { label: 'The Digital Front', href: 'https://www.facebook.com/profile.php?id=61590220487323', platform: 'facebook' },
 ] as const
