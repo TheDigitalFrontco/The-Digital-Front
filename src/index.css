@@ -224,6 +224,15 @@ body { margin: 0; background: var(--bg); color: var(--fg1); font-family: var(--f
   to { transform: scaleX(1); }
 }
 
+/* Scroll cue — the quiet, centered double-ended arrow under the 02 / 03 section
+   titles. A gentle up/down drift (never bouncy); the global reduced-motion rule
+   below freezes it to a static arrow. */
+@keyframes df-scroll-bob {
+  0%, 100% { transform: translateY(-2px); opacity: 0.55; }
+  50%      { transform: translateY(2px);  opacity: 1; }
+}
+.df-scroll-cue-arrow { animation: df-scroll-bob 2s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {

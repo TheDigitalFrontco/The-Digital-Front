@@ -99,7 +99,7 @@ export default function Footer() {
   const year = 2026 // brand "Est." year (static — site says Est. 2026)
 
   return (
-    <footer data-theme="dark" className="relative overflow-hidden bg-blue-950">
+    <footer id="footer" data-theme="dark" className="relative overflow-hidden bg-blue-950">
       <div className="df-texture-dots pointer-events-none absolute inset-0 opacity-40" aria-hidden />
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 sm:py-24 lg:px-10">

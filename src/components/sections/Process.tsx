@@ -9,6 +9,7 @@
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from '../../lib/animation'
 import { Reveal, RevealItem } from '../ui/Reveal'
+import ScrollCue from '../ui/ScrollCue'
 
 interface Step {
   index: string
@@ -65,6 +66,7 @@ interface StringState {
   k: number // stiffness — pull back to taut
   c: number // damping — how fast the wobble dies
   sign: number // alternate sag direction so adjacent strings read as a wave
+  drawn: number // last `pos` written to the DOM — lets us skip no-op repaints
 }
 
 function StepCard({ step }: { step: Step }) {
@@ -142,6 +144,7 @@ function StringConnector({ pathRef }: { pathRef: (el: SVGPathElement | null) => 
         className="absolute inset-0 h-full w-full overflow-visible"
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
+        style={{ willChange: 'transform' }}
       >
         <path
           ref={pathRef}
@@ -248,6 +251,20 @@ export default function Process() {
           },
         })
 
+        // Only run the per-frame string physics while the section is on screen.
+        // Otherwise the ticker below burns main-thread time recomputing springs
+        // and re-pathing 3 SVGs every frame for the whole rest of the page.
+        let visible = false
+        const visST = ScrollTrigger.create({
+          trigger: section.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          onToggle: (self) => {
+            visible = self.isActive
+          },
+        })
+        visible = visST.isActive
+
         // One spring per string. Slight per-string variation + alternating sign
         // so the row of strings reads as an organic wave, not a rubber stamp.
         const strings: StringState[] = paths.current.map((_, i) => ({
@@ -256,6 +273,7 @@ export default function Process() {
           k: 90 + (i % 3) * 10, // spring pull back to taut
           c: 20 + (i % 2) * 1.5, // ~critical damping → eases back with no rebound
           sign: i % 2 === 0 ? 1 : -1, // adjacent strings sag opposite ways → a gentle wave
+          drawn: NaN, // forces the first frame to draw
         }))
 
         // Sag force, gentled on touch devices — phones AND iPads alike — where fast
@@ -274,6 +292,7 @@ export default function Process() {
         window.addEventListener('resize', tuneForce)
 
         const tick = (_t: number, deltaMs: number) => {
+          if (!visible) return // section off-screen → skip the physics entirely
           const dt = Math.min(deltaMs / 1000, 1 / 30) // clamp dt on slow frames
           scrollVel *= 0.83 // decay stale velocity quickly so the sag doesn't linger
 
@@ -288,6 +307,11 @@ export default function Process() {
 
             const p = paths.current[i]
             if (!p) continue
+            // Skip the DOM write when the curve hasn't visibly moved. A taut /
+            // settled string then costs nothing instead of re-pathing an SVG every
+            // frame — which, inside the track's layer, forced per-frame repaints.
+            if (Math.abs(s.pos - s.drawn) < 0.02) continue
+            s.drawn = s.pos
             const y1 = 50 + s.pos
             const y2 = 50 + s.pos * 0.82 // trailing control point → rope-like S curve
             p.setAttribute('d', `M0,50 C33,${y1.toFixed(2)} 66,${y2.toFixed(2)} 100,50`)
@@ -300,6 +324,7 @@ export default function Process() {
           gsap.ticker.remove(tick)
           window.removeEventListener('resize', tuneForce)
           st.kill()
+          visST.kill()
         }
       })
 
@@ -336,6 +361,7 @@ export default function Process() {
       >
         Simple, by <span className="df-em">design.</span>
       </h2>
+      <ScrollCue tone="on-light" />
     </div>
   )
 
@@ -364,7 +390,7 @@ export default function Process() {
       <div
         ref={track}
         className="relative flex flex-col gap-6 px-5 py-24 sm:px-8 sm:py-28
-                   motion-safe:h-dvh motion-safe:flex-row motion-safe:items-center motion-safe:gap-0 motion-safe:py-0 motion-safe:md:px-10"
+                   motion-safe:h-dvh motion-safe:flex-row motion-safe:items-center motion-safe:gap-0 motion-safe:py-0 motion-safe:md:px-10 motion-safe:will-change-transform"
       >
         {/* In the reduced/vertical view we want natural reading order + a rail. */}
         <div className="contents motion-safe:hidden">

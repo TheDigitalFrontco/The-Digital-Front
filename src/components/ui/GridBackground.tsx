@@ -24,9 +24,13 @@ export default function GridBackground({
   useGSAP(
     () => {
       if (prefersReducedMotion()) return
-      // Slow, barely-there drift — mechanical and calm, never floaty.
+      // Slow, barely-there drift — mechanical and calm, never floaty. Driven on
+      // TRANSFORM (translate), not background-position: the tile repeats every
+      // `cell`px, so translating one cell looks identical but is GPU-composited
+      // (no per-frame full-surface repaint, which tanked scroll FPS).
       gsap.to(ref.current, {
-        backgroundPosition: `${cell}px ${cell}px`,
+        x: cell,
+        y: cell,
         duration: 18,
         ease: 'none',
         repeat: -1,
@@ -50,11 +54,13 @@ export default function GridBackground({
     >
       <div
         ref={ref}
-        className="absolute inset-[-10%]"
+        // Overhang ≥ the drift distance (one cell) on every side so translating
+        // by `cell` never exposes an uncovered edge, even on narrow phones.
+        className="absolute inset-[-80px]"
         style={{
           backgroundImage: `linear-gradient(${line} 1px, transparent 1px), linear-gradient(90deg, ${line} 1px, transparent 1px)`,
           backgroundSize: `${cell}px ${cell}px`,
-          willChange: 'background-position',
+          willChange: 'transform',
         }}
       />
     </div>

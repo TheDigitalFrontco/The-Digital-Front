@@ -4,6 +4,13 @@ import App from './App.tsx'
 import './index.css'
 import { ScrollSmoother, prefersReducedMotion } from './lib/animation'
 
+// We restore the last-viewed section ourselves on reload (see
+// useScrollRestoration); take scroll restoration off the browser as early as
+// possible so it can't flash the previous position through ScrollSmoother first.
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual'
+}
+
 // Page-wide smooth (lerped) scrolling — the buttery vertical feel, and what
 // glides you in and out of the pinned horizontal sections instead of the pin
 // "catching" your scroll.

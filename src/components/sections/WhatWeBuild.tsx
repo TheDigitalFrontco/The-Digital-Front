@@ -16,6 +16,7 @@ import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from '../../lib/an
 const SCROLL_FACTOR = 1.45
 import { useInViewVideo } from '../../hooks/useInViewVideo'
 import StartProjectButton from '../ui/StartProjectButton'
+import ScrollCue from '../ui/ScrollCue'
 
 interface Project {
   id: string
@@ -233,7 +234,7 @@ export default function WhatWeBuild() {
     >
       <div
         ref={track}
-        className="flex flex-col gap-5 px-5 py-24 sm:px-8 sm:py-28 motion-safe:h-full motion-safe:flex-row motion-safe:items-center motion-safe:gap-5 motion-safe:py-0 motion-safe:min-[1025px]:gap-6 motion-safe:min-[1025px]:px-10"
+        className="flex flex-col gap-5 px-5 py-24 sm:px-8 sm:py-28 motion-safe:h-full motion-safe:flex-row motion-safe:items-center motion-safe:gap-5 motion-safe:py-0 motion-safe:min-[1025px]:gap-6 motion-safe:min-[1025px]:px-10 motion-safe:will-change-transform"
       >
         {/* intro panel */}
         <div className="work-reveal flex w-full flex-none flex-col justify-center motion-safe:h-[64svh] motion-safe:w-[82vw] motion-safe:sm:w-[60vw] motion-safe:min-[1025px]:h-[62vh] motion-safe:md:w-[clamp(300px,30vw,420px)]">
@@ -252,6 +253,7 @@ export default function WhatWeBuild() {
           >
             A glimpse of the <span className="df-em">range.</span>
           </h2>
+          <ScrollCue tone="on-dark" />
         </div>
 
         {/* 01, 02, 03 are the shorter, wider clips. On phones they stack into a

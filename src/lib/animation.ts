@@ -21,6 +21,11 @@ import type { Transition, Variants } from 'framer-motion'
 /* Register plugins once, on the client. */
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, ScrollSmoother, CustomEase, useGSAP)
 
+// A mobile browser showing/hiding its address bar resizes the viewport, which
+// would otherwise fire a ScrollTrigger refresh mid-scroll and hitch the pinned
+// sweeps. Ignore that resize — the pinned heights use svh/dvh and already cope.
+ScrollTrigger.config({ ignoreMobileResize: true })
+
 /* ---- Tokens -------------------------------------------------------------- */
 
 /** Brand ease-out as a cubic-bezier array — for Framer Motion transitions. */

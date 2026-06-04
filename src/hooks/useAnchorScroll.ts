@@ -49,16 +49,7 @@ export function useAnchorScroll() {
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
     }
 
-    // Always (re)open at the very top. This site's pinned scroll animations don't
-    // restore cleanly to a mid-page position, and the hero is designed to play
-    // from the start — so we turn off the browser's scroll restoration and reset
-    // to the top on load. (An in-progress contact form is preserved separately,
-    // so nothing is lost by starting fresh here.)
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual'
-    }
-    window.scrollTo(0, 0)
-
+    // Scroll position across reloads is owned by useScrollRestoration, not here.
     return () => document.removeEventListener('click', onClick)
   }, [])
 }
