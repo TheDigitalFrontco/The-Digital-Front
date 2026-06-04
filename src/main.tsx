@@ -34,6 +34,10 @@ if (!prefersReducedMotion() && !ScrollSmoother.get()) {
     content: '#smooth-content',
     smooth: 1.2, // desktop lerp (seconds to "catch up")
     smoothTouch: 0.15, // touch lerp (seconds) — smooths mobile vertical scrolling
+    // Touch only: hand iOS address-bar handling to ScrollSmoother. Without it, the
+    // bar reappearing on scroll-UP resized the viewport and left a white gap above
+    // the pinned sweeps. Off on desktop, so the mouse/trackpad feel is unchanged.
+    normalizeScroll: window.matchMedia('(pointer: coarse)').matches,
     effects: false,
   })
 }
