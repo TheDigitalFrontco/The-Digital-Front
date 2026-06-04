@@ -51,7 +51,7 @@ export default function ScrollCue({
     <div
       ref={ref}
       aria-hidden
-      className={`flex flex-col items-center gap-1.5 self-start text-center ${className}`}
+      className={`flex flex-col items-center gap-2 self-start text-center ${className}`}
       style={{
         color,
         marginTop: 'clamp(20px, 3.2vw, 36px)',
@@ -61,7 +61,7 @@ export default function ScrollCue({
     >
       <span
         className="font-mono uppercase"
-        style={{ fontSize: 'clamp(9px, 0.5vw + 6px, 10.5px)', letterSpacing: '0.22em', textIndent: '0.11em' }}
+        style={{ fontSize: 'clamp(11px, 0.6vw + 7px, 13px)', letterSpacing: '0.22em', textIndent: '0.11em' }}
       >
         {label}
       </span>
@@ -73,7 +73,7 @@ export default function ScrollCue({
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={{ width: 'clamp(10px, 1.1vw, 12px)', height: 'auto' }}
+        style={{ width: 'clamp(14px, 1.6vw, 18px)', height: 'auto' }}
       >
         {/* top head — points up */}
         <path d="M2.5 6 L6 2 L9.5 6" />

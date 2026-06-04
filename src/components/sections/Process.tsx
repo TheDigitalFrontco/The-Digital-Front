@@ -251,19 +251,24 @@ export default function Process() {
           },
         })
 
-        // Only run the per-frame string physics while the section is on screen.
-        // Otherwise the ticker below burns main-thread time recomputing springs
-        // and re-pathing 3 SVGs every frame for the whole rest of the page.
+        // Run the per-frame string physics only while the section is on screen — via
+        // an IntersectionObserver, NOT a sibling ScrollTrigger. The section is PINNED,
+        // so a ScrollTrigger's `bottom top` end resolves to the section's natural
+        // (un-pinned) bottom, which the long pin scroll-distance reaches PARTWAY
+        // through the sweep. That flipped `visible` to false mid-pin — while the
+        // section was still fully on screen — and the `if (!visible) return` below
+        // froze the springs in whatever sag they had, for the rest of the sweep. IO
+        // reports the real rendered position, so it stays true for the whole pin; the
+        // rootMargin keeps the physics warm just before/after so the strings are
+        // settled by the time they're on screen.
         let visible = false
-        const visST = ScrollTrigger.create({
-          trigger: section.current,
-          start: 'top bottom',
-          end: 'bottom top',
-          onToggle: (self) => {
-            visible = self.isActive
+        const io = new IntersectionObserver(
+          (entries) => {
+            visible = entries[0].isIntersecting
           },
-        })
-        visible = visST.isActive
+          { rootMargin: '300px 0px' },
+        )
+        if (section.current) io.observe(section.current)
 
         // One spring per string. Slight per-string variation + alternating sign
         // so the row of strings reads as an organic wave, not a rubber stamp.
@@ -324,7 +329,7 @@ export default function Process() {
           gsap.ticker.remove(tick)
           window.removeEventListener('resize', tuneForce)
           st.kill()
-          visST.kill()
+          io.disconnect()
         }
       })
 

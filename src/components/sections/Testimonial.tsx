@@ -42,11 +42,38 @@ const QUOTES: Quote[] = [
 
 const INTERVAL = 3000 // ms each quote holds before advancing
 
+// How long after the pointer goes still we resume auto-rotating. We pause on
+// pointer MOVEMENT (the visitor reading), not on mouseenter: on desktop,
+// ScrollSmoother glides the whole card up under a resting cursor via a CSS
+// transform, which fires mouseenter with no user input at all — that used to
+// latch `paused` on and freeze the carousel (and its progress bar) on the first
+// quote until the cursor was moved away. Keying off movement + an idle resume
+// guarantees a stationary cursor (scrolled-under, or simply parked over the
+// card) can never stall the rotation. Touch is unaffected — mouse events don't
+// fire there, which is why the bug never showed on mobile.
+const RESUME_AFTER_IDLE = 1500 // ms of pointer stillness before rotation resumes
+
 export default function Testimonial() {
   const section = useRef<HTMLElement>(null)
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const reduce = prefersReducedMotion()
+
+  // Hover pause (pointer devices). Pause while the cursor is actively moving over
+  // the card, and resume once it has been still for a beat — see RESUME_AFTER_IDLE
+  // for why this keys off movement rather than mouseenter. clearTimeout on every
+  // move keeps re-arming the resume so the pause holds while you read.
+  const resumeTimer = useRef<number | undefined>(undefined)
+  const pauseWhileMoving = () => {
+    setPaused(true)
+    window.clearTimeout(resumeTimer.current)
+    resumeTimer.current = window.setTimeout(() => setPaused(false), RESUME_AFTER_IDLE)
+  }
+  const resumeNow = () => {
+    window.clearTimeout(resumeTimer.current)
+    setPaused(false)
+  }
+  useEffect(() => () => window.clearTimeout(resumeTimer.current), [])
 
   // `inView` gates the reveal + autoplay so the word-by-word illumination plays
   // when the visitor reaches "Kind words", not off-screen below the fold. It's
@@ -145,10 +172,13 @@ export default function Testimonial() {
 
       <figure
         className="relative z-10 mx-auto flex min-h-[78vh] max-w-4xl flex-col items-center justify-center px-5 py-28 text-center sm:px-8 sm:py-36"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-        onFocusCapture={() => setPaused(true)}
-        onBlurCapture={() => setPaused(false)}
+        onMouseMove={pauseWhileMoving}
+        onMouseLeave={resumeNow}
+        onFocusCapture={() => {
+          window.clearTimeout(resumeTimer.current)
+          setPaused(true)
+        }}
+        onBlurCapture={resumeNow}
         aria-roledescription="carousel"
         aria-label="Client testimonials"
       >

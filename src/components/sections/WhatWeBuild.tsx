@@ -128,7 +128,7 @@ function WorkTile({ p }: { p: Project }) {
       </div>
 
       {/* legibility scrims — top keeps the index label readable over light video
-          frames; bottom anchors the hover arrow. */}
+          frames; bottom grounds the clip with a subtle vignette. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-[40%]"
@@ -147,16 +147,6 @@ function WorkTile({ p }: { p: Project }) {
       >
         {p.id} — {p.label}
       </span>
-
-      {/* hover arrow */}
-      <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-end p-5 sm:p-6">
-        <span
-          aria-hidden
-          className="font-mono text-[18px] text-white transition-transform duration-300 ease-out group-hover:translate-x-1"
-        >
-          →
-        </span>
-      </div>
     </article>
   )
 }
