@@ -33,7 +33,7 @@ if (!prefersReducedMotion() && !ScrollSmoother.get()) {
     wrapper: '#smooth-wrapper',
     content: '#smooth-content',
     smooth: 1.2, // desktop lerp (seconds to "catch up")
-    smoothTouch: 0.1, // touch lerp (seconds) — smooths mobile vertical scrolling
+    smoothTouch: 0.15, // touch lerp (seconds) — smooths mobile vertical scrolling
     effects: false,
   })
 }
