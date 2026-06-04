@@ -21,18 +21,19 @@ if ('scrollRestoration' in history) {
 // distance). So the #smooth-wrapper/#smooth-content live in index.html and we
 // create the smoother here, synchronously, ahead of createRoot().render().
 //
-// Pointer devices only: touch keeps native momentum (already smooth) plus the
-// sections' own normalizeScroll, and reduced-motion keeps plain scrolling. When
-// it's not created, the wrapper divs are inert and scrolling is normal.
-if (
-  !prefersReducedMotion() &&
-  !window.matchMedia('(pointer: coarse)').matches &&
-  !ScrollSmoother.get()
-) {
+// Created for touch too (reduced-motion still keeps plain scrolling). On touch we
+// add a light `smoothTouch` lerp so ScrollSmoother owns ALL scrolling — it glides
+// the pinned sweeps AND smooths general vertical scroll. This replaces the raw
+// per-section `normalizeScroll(true)`, which kept the pins synced but forced the
+// whole page's scroll onto the main thread, leaving mobile *vertical* scrolling
+// juddery (desktop was unaffected). `smoothTouch` is the dial: raise it for more
+// glide, lower it (toward 0) for snappier, more native-feeling touch.
+if (!prefersReducedMotion() && !ScrollSmoother.get()) {
   ScrollSmoother.create({
     wrapper: '#smooth-wrapper',
     content: '#smooth-content',
-    smooth: 1.2, // seconds to "catch up" to the scroll — the smoothness dial
+    smooth: 1.2, // desktop lerp (seconds to "catch up")
+    smoothTouch: 0.1, // touch lerp (seconds) — smooths mobile vertical scrolling
     effects: false,
   })
 }

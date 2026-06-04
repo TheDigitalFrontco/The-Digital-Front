@@ -328,12 +328,8 @@ export default function Process() {
         }
       })
 
-      // Touch: normalize scroll so the pin stays smooth (same as What We Build).
-      mm.add('(pointer: coarse) and (prefers-reduced-motion: no-preference)', () => {
-        ScrollTrigger.normalizeScroll(true)
-        return () => ScrollTrigger.normalizeScroll(false)
-      })
-
+      // Touch scrolling + pin sync is owned by ScrollSmoother's smoothTouch now
+      // (see main.tsx) — no separate normalizeScroll here.
       return () => mm.revert()
     },
     { scope: section },

@@ -211,15 +211,8 @@ export default function WhatWeBuild() {
         return () => st.kill()
       })
 
-      // Touch devices: normalize scroll so the pin stays smooth and the mobile
-      // address-bar resize doesn't cause jumps.
-      mm.add('(pointer: coarse) and (prefers-reduced-motion: no-preference)', () => {
-        ScrollTrigger.normalizeScroll(true)
-        return () => {
-          ScrollTrigger.normalizeScroll(false)
-        }
-      })
-
+      // Touch scrolling (incl. keeping this pin synced) is owned by ScrollSmoother's
+      // smoothTouch now — see main.tsx. No separate normalizeScroll here.
       return () => mm.revert()
     },
     { scope: section },
