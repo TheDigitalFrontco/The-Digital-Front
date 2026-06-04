@@ -1,7 +1,12 @@
 /* Animated digital-texture grid for blue surfaces. White hairlines at ≤7%
    contrast (per brand), softly masked toward the edges so it reads as
    structure, not noise. Slow continuous drift + optional scroll parallax,
-   driven on transform only for 60fps. */
+   driven on transform only for 60fps.
+
+   On touch (pointer:coarse) the grid is rendered STATIC and UNMASKED: a weak
+   mobile GPU shouldn't spend frames re-compositing a full-bleed masked layer as
+   it drifts/parallaxes (a real mobile scroll cost), and the texture is subtle
+   enough to read fine edge-to-edge. Desktop keeps the masked drift. */
 
 import { useRef } from 'react'
 import { gsap, useGSAP, prefersReducedMotion } from '../../lib/animation'
@@ -14,6 +19,8 @@ interface GridBackgroundProps {
   className?: string
 }
 
+const COARSE = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+
 export default function GridBackground({
   cell = 64,
   opacity = 0.06,
@@ -23,7 +30,8 @@ export default function GridBackground({
 
   useGSAP(
     () => {
-      if (prefersReducedMotion()) return
+      // Static on touch (see file header) and under reduced motion.
+      if (prefersReducedMotion() || COARSE) return
       // Slow, barely-there drift — mechanical and calm, never floaty. Driven on
       // TRANSFORM (translate), not background-position: the tile repeats every
       // `cell`px, so translating one cell looks identical but is GPU-composited
@@ -40,17 +48,17 @@ export default function GridBackground({
   )
 
   const line = `rgba(255,255,255,${opacity})`
+  // The radial mask is a per-frame re-composite while the grid moves — fine on a
+  // desktop GPU, costly on mobile, so it's desktop-only.
+  const mask = COARSE
+    ? undefined
+    : 'radial-gradient(120% 120% at 50% 30%, #000 35%, transparent 78%)'
 
   return (
     <div
       aria-hidden
       className={`pointer-events-none absolute inset-0 ${className}`}
-      style={{
-        // double radial mask: fades the grid out toward the edges
-        WebkitMaskImage:
-          'radial-gradient(120% 120% at 50% 30%, #000 35%, transparent 78%)',
-        maskImage: 'radial-gradient(120% 120% at 50% 30%, #000 35%, transparent 78%)',
-      }}
+      style={{ WebkitMaskImage: mask, maskImage: mask }}
     >
       <div
         ref={ref}
@@ -60,7 +68,7 @@ export default function GridBackground({
         style={{
           backgroundImage: `linear-gradient(${line} 1px, transparent 1px), linear-gradient(90deg, ${line} 1px, transparent 1px)`,
           backgroundSize: `${cell}px ${cell}px`,
-          willChange: 'transform',
+          willChange: COARSE ? undefined : 'transform',
         }}
       />
     </div>
