@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>The Digital Front — Showcase</title>
+  <meta name="description" content="A scroll-driven takeover of what we do, what we build, and how we work.">
+  <meta name="theme-color" content="#1E2C40">
+  <meta name="robots" content="noindex"><!-- standalone review page -->
+
+  <link rel="icon" type="image/png" href="assets/favicon.png?v=2">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- DF design tokens (single source of truth) + showcase styles -->
+  <link rel="stylesheet" href="colors_and_type.css">
+  <link rel="stylesheet" href="showcase.css?v=4">
+</head>
+<body data-theme="dark">
+
+  <!-- shared fixed background (its color is driven by the active beat) -->
+  <div class="stage-bg" data-stage-bg></div>
+  <div class="stage-texture" aria-hidden="true"></div>
+
+  <!-- fixed top bar: DF brand + the pillar index -->
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html" aria-label="The Digital Front, home">
+      <span class="topbar__mark"><img src="assets/logo-source-cropped.png" alt=""></span>
+      <span class="topbar__wm">The Digital Front</span>
+    </a>
+    <nav class="top-index" data-index aria-label="Sections"></nav>
+  </header>
+
+  <!-- intro: gives the sequence a hero so the first beat reveals on scroll-in -->
+  <section class="intro">
+    <p class="intro__kicker">AI Videos · Websites</p>
+    <h1 class="intro__title">What we do, what we build, <em class="df-em">and how we work.</em></h1>
+    <p class="intro__sub">Scroll — each chapter takes over the screen.</p>
+    <span class="intro__cue" aria-hidden="true"><i></i></span>
+  </section>
+
+  <!-- the pinned takeover beats are rendered here, from the BEATS array -->
+  <main class="sections" data-sections></main>
+
+  <!-- outro: the pin releases into a normal closing CTA -->
+  <section class="outro" id="start">
+    <p class="outro__eyebrow">Start a project</p>
+    <h2 class="outro__title">Ready to look the part online? <em class="df-em">Let's build.</em></h2>
+    <a class="btn-primary" href="https://wa.me/96170622335?text=Hi%2C%20I%27d%20like%20to%20discuss%20a%20project%20I%20have%20in%20mind" target="_blank" rel="noopener">Message on WhatsApp &rarr;</a>
+    <a class="outro__back" href="index.html">&larr; Back to the main site</a>
+  </section>
+
+  <!-- GSAP + ScrollTrigger + ScrollToPlugin + Lenis, then the showcase logic -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
+  <script src="showcase.js?v=4" defer></script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+/* ============================================================================
+   THE DIGITAL FRONT — Core Tokens: Color + Type
+   Import this file (or copy the :root block) into any artifact.
+   Fonts load from Google Fonts. See README → Visual Foundations for usage.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ---- Type families ---------------------------------------------------- */
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;        /* editorial authority */
+  --font-sans:    'Hanken Grotesk', -apple-system, system-ui, sans-serif;  /* clean neutral body (Neue Haas-class) */
+  --font-mono:    'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;     /* technical labels / digital texture */
+
+  /* ---- Brand blue — matte slate scale ----------------------------------- */
+  /* Desaturated, no neon. #4F6E9B (500) and #3E587F (700) are the two anchors. */
+  --blue-50:  #EEF2F8;
+  --blue-100: #DCE3EF;
+  --blue-200: #C2CFE2;
+  --blue-300: #9FB1CD;
+  --blue-400: #768FB5;
+  --blue-500: #4F6E9B;   /* brand light anchor */
+  --blue-600: #46618A;
+  --blue-700: #3E587F;   /* brand deep anchor — primary */
+  --blue-800: #344A6A;
+  --blue-900: #2A3C56;   /* dark-theme surface */
+  --blue-950: #1E2C40;   /* near-charcoal navy — deepest bg */
+
+  /* ---- Neutrals — snow + cool greys ------------------------------------- */
+  --white:    #FFFFFF;   /* snow white */
+  --grey-50:  #F7F8FA;
+  --grey-100: #EFF1F4;
+  --grey-200: #E2E6EC;
+  --grey-300: #CBD1DA;
+  --grey-400: #A4ACB9;
+  --grey-500: #79828F;
+  --grey-600: #5A626E;
+  --grey-700: #3F4651;
+  --grey-800: #2A2F38;
+  --grey-900: #161B22;   /* ink */
+
+  /* ---- Functional (kept desaturated/matte to match brand) --------------- */
+  --positive: #4F7E6B;
+  --caution:  #B08A4A;
+  --critical: #A85A52;
+
+  /* ---- Radii — sharp, geometric ----------------------------------------- */
+  --r-0: 0px;    /* hard edge — default for large surfaces */
+  --r-1: 2px;
+  --r-2: 4px;    /* default for controls / cards */
+  --r-3: 8px;
+  --r-pill: 999px;
+
+  /* ---- Spacing — 4px base grid, generous ------------------------------- */
+  --s-1: 4px;   --s-2: 8px;   --s-3: 12px;  --s-4: 16px;  --s-5: 24px;
+  --s-6: 32px;  --s-7: 48px;  --s-8: 64px;  --s-9: 96px;  --s-10: 128px;
+
+  /* ---- Elevation — soft, low, matte (no glossy/harsh shadows) ----------- */
+  --shadow-1: 0 1px 2px rgba(30,44,64,.06), 0 1px 1px rgba(30,44,64,.04);
+  --shadow-2: 0 4px 14px rgba(30,44,64,.08);
+  --shadow-3: 0 18px 48px rgba(30,44,64,.12);
+  --border-hairline: 1px solid var(--grey-200);
+
+  /* ---- Type scale (px) — premium-publication rhythm --------------------- */
+  --t-display: 76px;   --lh-display: 0.98; --ls-display: -0.02em;
+  --t-h1: 52px;        --lh-h1: 1.02;      --ls-h1: -0.018em;
+  --t-h2: 38px;        --lh-h2: 1.06;      --ls-h2: -0.014em;
+  --t-h3: 27px;        --lh-h3: 1.16;      --ls-h3: -0.01em;
+  --t-lead: 21px;      --lh-lead: 1.5;
+  --t-body: 17px;      --lh-body: 1.62;
+  --t-small: 14px;     --lh-small: 1.5;
+  --t-kicker: 12.5px;  --ls-kicker: 0.22em;  /* mono, uppercase eyebrows */
+
+  /* ---- Semantic — LIGHT theme (default) --------------------------------- */
+  --bg:        var(--white);
+  --bg-subtle: var(--grey-50);
+  --surface:   var(--white);
+  --fg1:       var(--blue-950);   /* primary ink — near-charcoal navy */
+  --fg2:       var(--grey-600);   /* secondary */
+  --fg3:       var(--grey-500);   /* muted / captions */
+  --accent:    var(--blue-700);
+  --accent-2:  var(--blue-500);
+  --on-accent: var(--white);
+  --border:    var(--grey-200);
+  --border-strong: var(--grey-300);
+  --texture:   rgba(62,88,127,.10); /* grid lines / pixel dots on light */
+}
+
+/* ---- Semantic — DARK theme (the signature look: white on blue) --------- */
+[data-theme="dark"] {
+  --bg:        var(--blue-950);
+  --bg-subtle: var(--blue-900);
+  --surface:   var(--blue-900);
+  --fg1:       var(--white);
+  --fg2:       var(--blue-200);
+  --fg3:       #8FA3C0;
+  --accent:    var(--white);
+  --accent-2:  var(--blue-300);
+  --on-accent: var(--blue-800);
+  --border:    rgba(255,255,255,.14);
+  --border-strong: rgba(255,255,255,.26);
+  --texture:   rgba(255,255,255,.08);
+}
+/* Brand-surface dark variant on the lighter slate (#3E587F) */
+[data-theme="brand"] {
+  --bg:        var(--blue-700);
+  --bg-subtle: var(--blue-800);
+  --surface:   var(--blue-600);
+  --fg1:       var(--white);
+  --fg2:       var(--blue-100);
+  --fg3:       var(--blue-200);
+  --accent:    var(--white);
+  --accent-2:  var(--blue-200);
+  --on-accent: var(--blue-700);
+  --border:    rgba(255,255,255,.18);
+  --border-strong: rgba(255,255,255,.30);
+  --texture:   rgba(255,255,255,.09);
+}
+
+/* ============================================================================
+   Semantic element styles — apply via class or copy declarations.
+   ========================================================================== */
+.df-display { font-family: var(--font-display); font-weight: 500; font-size: var(--t-display);
+  line-height: var(--lh-display); letter-spacing: var(--ls-display); color: var(--fg1); text-wrap: balance; }
+.df-h1 { font-family: var(--font-display); font-weight: 500; font-size: var(--t-h1);
+  line-height: var(--lh-h1); letter-spacing: var(--ls-h1); color: var(--fg1); text-wrap: balance; }
+.df-h2 { font-family: var(--font-display); font-weight: 500; font-size: var(--t-h2);
+  line-height: var(--lh-h2); letter-spacing: var(--ls-h2); color: var(--fg1); text-wrap: balance; }
+.df-h3 { font-family: var(--font-sans); font-weight: 700; font-size: var(--t-h3);
+  line-height: var(--lh-h3); letter-spacing: var(--ls-h3); color: var(--fg1); }
+.df-lead { font-family: var(--font-sans); font-weight: 400; font-size: var(--t-lead);
+  line-height: var(--lh-lead); color: var(--fg2); text-wrap: pretty; }
+.df-body { font-family: var(--font-sans); font-weight: 400; font-size: var(--t-body);
+  line-height: var(--lh-body); color: var(--fg2); text-wrap: pretty; }
+.df-small { font-family: var(--font-sans); font-weight: 500; font-size: var(--t-small);
+  line-height: var(--lh-small); color: var(--fg3); }
+.df-kicker { font-family: var(--font-mono); font-weight: 500; font-size: var(--t-kicker);
+  letter-spacing: var(--ls-kicker); text-transform: uppercase; color: var(--accent-2); }
+
+/* Editorial serif italic accent — used sparingly for emphasis words */
+.df-em { font-family: var(--font-display); font-style: italic; font-weight: 400; }

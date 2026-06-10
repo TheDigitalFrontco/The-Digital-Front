@@ -1,0 +1,419 @@
+/* ============================================================================
+   THE DIGITAL FRONT — Showcase (scroll-takeover) — STANDALONE PAGE
+   Replicates the reference "present" mechanic (one pinned full-screen section
+   per beat: art parallax-drift + clip-reveal name + word-stagger desc + exit),
+   but strictly on DF's design system:
+     - Newsreader (display) for the giant name — NOT a 900/black face
+     - Hanken Grotesk body, IBM Plex Mono labels
+     - per-pillar matte backgrounds #1E2C40 / #3E587F / #2E4A43
+     - ghost wordmarks + matte device frames as the art layer (no stock media)
+     - matte only: no video, no glow, no gradients
+   Geometry (big-font, art-work, art-object, desc, rec_btn) ported from the reference CSS.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--blue-950);                 /* deep navy — first pillar */
+  color: var(--white);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+
+/* ---- Shared, fixed background whose color the active beat drives ---------- */
+.stage-bg {
+  position: fixed; inset: 0;
+  background-color: var(--blue-950);
+  z-index: 0;
+  will-change: background-color;
+}
+/* faint pixel-grid texture — DF's matte digital signature (no glow) */
+.stage-texture {
+  position: fixed; inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: .5;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 40%, #000 55%, transparent 100%);
+          mask-image: radial-gradient(120% 100% at 50% 40%, #000 55%, transparent 100%);
+}
+
+/* ===========================================================================
+   TOP INDEX — fixed row of the three pillars; active one is bright
+   ========================================================================= */
+.topbar {
+  position: fixed; top: 0; left: 0; width: 100%;
+  z-index: 999;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem clamp(1rem, 5vw, 3rem);
+  pointer-events: none;
+}
+.topbar__brand {
+  display: inline-flex; align-items: center; gap: .6rem;
+  pointer-events: auto;
+}
+.topbar__mark {
+  display: grid; place-items: center;
+  width: 34px; height: 34px;
+  background: var(--blue-700);
+  border-radius: var(--r-2);
+}
+.topbar__mark img { width: 22px; height: 22px; }
+.topbar__wm {
+  font-family: var(--font-mono);
+  font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(255,255,255,.85);
+}
+
+.top-index {
+  display: flex; align-items: center; gap: clamp(.9rem, 2.4vw, 2.2rem);
+  pointer-events: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 72vw;
+}
+.top-index::-webkit-scrollbar { display: none; }
+.top-index__item {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  padding: 0; white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  transition: color .35s ease, opacity .35s ease;
+}
+.top-index__item .num { opacity: .7; margin-right: .45em; }
+.top-index__item.is-active { color: rgba(255,255,255,1); }
+.top-index__item:hover { color: rgba(255,255,255,.85); }
+
+/* ===========================================================================
+   INTRO — a hero above the pinned sequence (so the landing isn't blank)
+   ========================================================================= */
+.intro {
+  position: relative; z-index: 2;
+  min-height: 100vh; min-height: 100svh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 12vh clamp(1.4rem, 6vw, 5rem) 8vh;
+  gap: 1.3rem;
+}
+.intro__kicker {
+  margin: 0;
+  font-family: var(--font-mono); font-size: 12.5px;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--blue-300);
+}
+.intro__title {
+  margin: 0; max-width: 16ch;
+  font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(2.4rem, 7vw, 6rem); line-height: 1.0; letter-spacing: -.02em;
+  text-wrap: balance;
+}
+.intro__title .df-em { font-style: italic; font-weight: 400; }
+.intro__sub {
+  margin: .2rem 0 0;
+  font-family: var(--font-sans); font-size: clamp(15px, 1.4vw, 19px);
+  color: rgba(255,255,255,.6);
+}
+.intro__cue {
+  margin-top: 1.4rem;
+  width: 26px; height: 42px; border: 1px solid rgba(255,255,255,.3); border-radius: 999px;
+  display: grid; justify-items: center; align-items: start; padding-top: 8px;
+}
+.intro__cue i { width: 3px; height: 8px; border-radius: 2px; background: rgba(255,255,255,.7); animation: introCue 1.6s ease-in-out infinite; }
+@keyframes introCue { 0%,100% { transform: translateY(0); opacity: .3; } 50% { transform: translateY(8px); opacity: 1; } }
+
+/* ===========================================================================
+   ART SECTION — one pinned full-screen beat (the core)
+   ========================================================================= */
+.sections { position: relative; z-index: 2; }
+
+.art-section {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  height: 100vh; height: 100svh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* The art layer sits low and rises into frame (reference: .art-work{top:80vh}) */
+.art-work {
+  position: absolute; left: 0; top: 80vh;
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; width: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Decorative ghost word — the reference's "svg-img" slot, re-cast as DF's
+   matte ghost wordmark. width 55% / 65vh per the reference geometry. */
+.svg-img {
+  position: absolute;
+  width: 55%; height: 65vh;
+  margin-left: 20%; margin-right: 20%;
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22vw; line-height: .8;
+  letter-spacing: -.02em;
+  color: rgba(255,255,255,.055);
+  text-transform: none; white-space: nowrap;
+  user-select: none;
+  will-change: top, transform, opacity;
+}
+
+/* The hero object — the reference's "art-section-img" slot: matte device
+   frame / mark tile / index numeral. object 70vh tall, centered. */
+.art-object {
+  position: absolute;
+  height: 70vh;
+  margin-left: 20%; margin-right: 20%;
+  display: grid; place-items: center;
+  will-change: top, transform, opacity;
+}
+
+/* ---- matte device frames (reuse DF's showcase language) ------------------ */
+.showcase {
+  position: relative;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: clamp(12px, 2vw, 28px);
+}
+.frame {
+  margin: 0;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: var(--r-3);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+  backdrop-filter: blur(2px);
+}
+.frame--browser { width: min(46vw, 620px); }
+.frame--phone  { width: min(15vw, 168px); border-radius: 18px; }
+.frame__bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.03);
+}
+.frame__bar i { width: 9px; height: 9px; border-radius: 999px; background: rgba(255,255,255,.22); }
+.frame__url {
+  margin-left: 10px;
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: .04em; color: rgba(255,255,255,.5);
+}
+.frame__screen {
+  aspect-ratio: 16 / 9;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,.06), transparent 70%),
+    rgba(255,255,255,.02);
+}
+.frame--phone .frame__screen { aspect-ratio: 9 / 19; }
+.slot__tag {
+  display: inline-flex; align-items: center; gap: .5em;
+  font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(255,255,255,.62);
+}
+.slot__tag svg { width: 15px; height: 15px; }
+
+/* ---- mark tile + giant index numeral ------------------------------------- */
+.art-mark {
+  display: grid; place-items: center;
+  width: 34vh; height: 34vh;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: var(--r-3);
+}
+.art-mark img { width: 46%; height: auto; }
+.art-numeral {
+  font-family: var(--font-display);
+  font-weight: 500; font-style: italic;
+  font-size: 34vh; line-height: 1;
+  color: rgba(255,255,255,.10);
+}
+
+/* ===========================================================================
+   BOTTOM CONTENT ROW — logo/kicker + giant name + desc + CTA
+   ========================================================================= */
+.art-foot {
+  position: absolute; left: 0; bottom: 3vh;
+  width: 100%;
+  z-index: 200;
+}
+.art-bottom-cont {
+  position: relative;
+  display: flex; flex-wrap: nowrap; align-items: flex-end; justify-content: space-between;
+  width: 100%;
+  gap: 2.4em;
+  padding-left: 14%; padding-right: 8%;
+}
+
+/* kicker (the reference's small logo, re-cast as a DF mono label) + giant name.
+   flex:1 + min-width:0 lets a long editorial name take the remaining width and
+   wrap rather than collide with the description column on its right. */
+.big-font {
+  margin: 0;
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: flex-start;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.4rem, 5.6vw, 6rem);
+  line-height: .96;
+  letter-spacing: -.02em;
+}
+.big-font .kicker {
+  display: inline-block;
+  margin-bottom: .8rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(11px, .9vw, 13px);
+  letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(255,255,255,.7);
+}
+.name-mask { display: block; overflow: hidden; }
+.name-inner { display: block; }
+.name-inner .df-em { font-weight: 400; }     /* editorial italic accent */
+
+/* description — words stagger up from behind the mask */
+.desc {
+  position: relative; top: -1.5vw;
+  flex: 0 0 auto;
+  display: flex; flex-wrap: wrap; justify-content: flex-start;
+  align-items: flex-start;
+  gap: .5vw;
+  width: clamp(260px, 30vw, 460px);
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 1.4vw;
+  line-height: 200%;
+  text-transform: none;
+  opacity: .6;
+}
+.desc .word { display: inline-block; will-change: transform, opacity; }
+
+/* circular "Learn more / Start" button */
+.rec_btn {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center; gap: .6em;
+  width: 10em; padding: 0 .5em;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: clamp(12px, .9vw, 14px);
+  letter-spacing: .14em; text-transform: uppercase;
+  color: inherit;
+  pointer-events: auto;
+}
+.rec_btn .arrow {
+  display: grid; place-items: center;
+  width: 2.875em; height: 2.875em;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 999px;
+  flex: 0 0 auto;
+  transition: border-color .3s ease, transform .3s ease;
+}
+.rec_btn:hover .arrow { border-color: rgba(255,255,255,.7); transform: translateX(3px); }
+.rec_btn .arrow svg { width: 16px; height: 16px; }
+
+/* dark-text beats (light backgrounds) flip the borders like the reference */
+.art-section[data-ink="dark"] { color: var(--blue-950); }
+.art-section[data-ink="dark"] .rec_btn .arrow { border-color: rgba(11,4,42,.25); }
+.art-section[data-ink="dark"] .svg-img { color: rgba(11,4,42,.06); }
+
+/* ===========================================================================
+   OUTRO — releases the pin into a normal CTA, then footer
+   ========================================================================= */
+.outro {
+  position: relative; z-index: 2;
+  min-height: 90vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 12vh 6vw;
+  gap: 1.4rem;
+}
+.outro__eyebrow {
+  font-family: var(--font-mono); font-size: 12.5px;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--blue-300);
+}
+.outro__title {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(2.2rem, 6vw, 4.6rem); line-height: 1.02; letter-spacing: -.02em;
+}
+.outro__title .df-em { font-style: italic; font-weight: 400; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: .6em;
+  margin-top: .6rem;
+  padding: .85em 1.4em;
+  font-family: var(--font-sans); font-weight: 600; font-size: 16px;
+  background: var(--white); color: var(--blue-800);
+  border-radius: var(--r-2);
+  transition: transform .25s ease;
+}
+.btn-primary:hover { transform: translateY(-2px); }
+.outro__back {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: rgba(255,255,255,.5);
+}
+
+/* ===========================================================================
+   RESPONSIVE — tablet / mobile (reference breakpoints 1024 / 600)
+   ========================================================================= */
+@media (max-width: 1024px) {
+  .art-bottom-cont {
+    flex-direction: column; align-items: flex-start; text-align: left;
+    gap: 1.2em;
+    padding-left: 6%; padding-right: 6%;
+  }
+  .desc { width: 100%; font-size: 3vw; top: 0; }
+  .svg-img { width: 80%; margin-left: 10%; margin-right: 10%; font-size: 30vw; }
+  .art-object { margin-left: 10%; margin-right: 10%; }
+  .frame--browser { width: min(74vw, 560px); }
+  .frame--phone { width: min(26vw, 150px); }
+}
+@media (max-width: 600px) {
+  .art-work { top: 90vh; }
+  .big-font { font-size: clamp(2.2rem, 13vw, 5rem); }
+  .desc { font-size: 4vw; }
+  .svg-img { width: 90%; margin: 0 5%; font-size: 38vw; }
+  .art-object { margin: 0; height: 52vh; }
+  .topbar { padding: .8rem 1rem; }
+  .top-index { max-width: 58vw; }
+}
+
+/* ===========================================================================
+   STATIC FALLBACK — no JS / no GSAP / prefers-reduced-motion
+   Each beat becomes a plain, fully-visible block (no pin, no scrub).
+   ========================================================================= */
+.is-static .stage-bg,
+.is-static .stage-texture { position: absolute; }
+.is-static .art-section {
+  height: auto; min-height: 64vh;
+  padding: 14vh 6vw 8vh;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.is-static .art-work {
+  position: relative; top: 0; height: auto;
+  margin-bottom: 3rem;
+}
+.is-static .svg-img { display: none; }
+.is-static .art-object { position: relative; height: auto; margin: 0; }
+.is-static .art-foot { position: relative; bottom: 0; }
+.is-static .name-mask { overflow: visible; }
+.is-static .desc { top: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary:hover, .rec_btn:hover .arrow { transform: none; }
+}

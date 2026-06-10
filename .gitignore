@@ -1,0 +1,8 @@
+# Local tooling / not part of the published static site
+node_modules/
+package.json
+package-lock.json
+assets/work/
+.claude/
+.mcp.json
+.playwright-mcp/
