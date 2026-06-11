@@ -29,9 +29,13 @@
     try {
       var isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       var lenis = new window.Lenis({
-        duration: 1.05,
+        lerp: 0.06,           // wheel smoothing — LOWER = slower, longer glide. (Lenis ignores `duration`
+                              // whenever lerp is set, so this — not duration — is what controls the wheel.)
         easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
         smoothWheel: true,
+        wheelMultiplier: 0.3,  // distance moved per wheel notch (default 1). LOWER = less scroll per
+                               // gesture, so the scrubbed card animations advance gently at a normal
+                               // scroll instead of blasting through — like scrolling slowly by default.
         autoRaf: false,       // WE drive lenis.raf (gsap ticker below, or the rAF fallback). Without this
                               // Lenis ALSO runs its own rAF with performance.now() while the ticker feeds it
                               // gsap-time — two clocks fighting => corrupted deltas => scroll stalls/lags.
@@ -40,9 +44,10 @@
         // the drag stays 1:1 under the finger, but the released glide is ~1/3 as long and
         // settles smoothly, so a hard swipe advances about one card instead of four.
         syncTouch: isTouch,
-        touchMultiplier: 1,            // direct drag stays natural, 1:1
-        touchInertiaMultiplier: 12,    // fling glide distance (Lenis default 35 — the "scrolls past everything" culprit)
-        syncTouchLerp: 0.08            // smooth catch-up to the finger without feeling laggy
+        touchMultiplier: 0.48,         // touch drag distance — scaled with wheelMultiplier so phones/tablets
+                                       // keep the same gentle scroll-to-animation pace as desktop
+        touchInertiaMultiplier: 10,    // fling glide distance (Lenis default 35) — kept short so a hard swipe doesn't blast through
+        syncTouchLerp: 0.08            // smooth catch-up to the finger
       });
       App.lenis = lenis;
       window.__lenis = lenis;            // exposed for debugging
@@ -62,7 +67,8 @@
   }
 
   function scrollToY(y) {
-    if (App.lenis) App.lenis.scrollTo(y, { duration: 1.1 });
+    // a slower, natural glide to section targets (easeInOutCubic) instead of a near-instant jump
+    if (App.lenis) App.lenis.scrollTo(y, { duration: 1.7, easing: function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; } });
     else window.scrollTo({ top: y, behavior: prefersReduced ? 'auto' : 'smooth' });
   }
 
@@ -195,9 +201,13 @@
     if (!firstCard) return 0;
     if (App.animated && firstCard.__st) {
       var s = firstCard.__st;
-      // 01's duo reveals AI Videos THEN Websites in sequence, so land deeper — where BOTH are in and
-      // held (just before the exit). Every other section lands at its first card's centre.
-      var f = firstCard.classList.contains('card--duo') ? 0.78 : 0.5;
+      // Land where the card's content is fully revealed and held. The duo (01) stores an exact
+      // hold time (both cards in, before the exit); derive the scroll fraction from the timeline's
+      // own duration so it stays correct if the animation timing changes. Others land mid-card.
+      var f = 0.5;
+      if (firstCard.__landTime != null && s.animation && s.animation.duration) {
+        f = firstCard.__landTime / s.animation.duration();
+      }
       return s.start + (s.end - s.start) * f;
     }
     var cardTop = firstCard.getBoundingClientRect().top + window.scrollY;
@@ -277,7 +287,7 @@
     }
     // STAGE 2 — the TEXT (title + copy) that clip-reveals AFTER the card, with a quick gap
     function maskTargetsOf(card) {
-      if (card.classList.contains('card--duo'))       return toArr(card.querySelectorAll('.do-card__title'));
+      if (card.classList.contains('card--duo'))       return toArr(card.querySelectorAll('.do-card__title, .do-card__tagline, .do-card .card__list li'));   // title, tagline AND every bullet all use the mask reveal
       if (card.classList.contains('card--statement')) return keep([card.querySelector('.statement__title')]);
       if (card.classList.contains('card--case'))      return keep([card.querySelector('.case__title'), card.querySelector('.case__desc')]);
       if (card.classList.contains('card--next'))      return keep([card.querySelector('.next-card__kicker'), card.querySelector('.next-card__title'), card.querySelector('.next-card__desc')]);
@@ -286,7 +296,6 @@
     }
     // supporting content that does the softer (un-clipped) rise + fade
     function liftsOf(card) {
-      if (card.classList.contains('card--duo'))  return toArr(card.querySelectorAll('.do-card__tagline, .do-card .card__desc, .do-card .card__list'));
       if (card.classList.contains('card--next')) return keep([card.querySelector('.next-card .btn')]);
       return [];
     }
@@ -326,6 +335,8 @@
           var isLast = i === cards.length - 1;
 
           var ghosts    = toArr(card.querySelectorAll('.card__ghost, .case__word'));
+          var isStatement = card.classList.contains('card--statement');
+          var ghostDrift = 130;   // non-statement ghosts (03 step words): fixed px drift
           var lifts     = liftsOf(card);
           var hero      = heroOf(card);              // the case showcase (container; its devices carry the reveal)
           var devWraps  = toArr(card.querySelectorAll('.dev-rv'));    // case: every device MASK wrapper (clips + float + shadow)
@@ -366,7 +377,14 @@
               // the pinned card is the source of truth for the active section + bg
               onUpdate: function (self) {
                 setActive(section, secIdx);
-                if (ghosts.length) gsap.set(ghosts, { y: -self.progress * 130 });   // ghost parallax drift
+                if (!ghosts.length) return;
+                if (isStatement) {
+                  // "Range" is centred by CSS (inset:0 + margin:auto), so the drift is a pure translateY.
+                  // Rise = a % of the word's OWN height → identical look on every screen size.
+                  gsap.set(ghosts, { yPercent: -self.progress * 30 });
+                } else {
+                  gsap.set(ghosts, { y: -self.progress * ghostDrift });   // 03 step words: fixed px drift
+                }
               }
             }
           });
@@ -374,15 +392,17 @@
 
           // reveal — the CARD visual in FIRST; the TEXT then clips up a beat later
           if (card.classList.contains('card--duo')) {
-            // 01 "What we do": sequence the two cards — AI Videos reveals fully, THEN Websites starts
+            // 01 "What we do": the two cards reveal in sequence, and INSIDE each card every element —
+            // title, tagline, then each bullet — appears one after another (its own staggered reveal).
+            card.__landTime = 1.8;   // both cards fully revealed + held here → nav jump-to lands on the complete layout
             toArr(card.querySelectorAll('.do-card')).forEach(function (dc, di) {
-              var at = leadIn + di * 0.6;   // di=1 (Websites) begins ~when AI Videos has fully revealed
-              var titleEl = dc.querySelector('.do-card__title');
-              var titleInner = titleEl && titleEl.__mi;
-              var dcLifts = toArr(dc.querySelectorAll('.do-card__tagline, .card__desc, .card__list'));
+              var at = leadIn + di * 0.5;   // di=1 (Websites) begins ~when AI Videos has revealed
+              // every element — title, tagline, then each bullet — uses the SAME mask reveal
+              // (its inner slides up from behind a hidden edge), one after another.
+              var inners = toArr(dc.querySelectorAll('.do-card__title, .do-card__tagline, .card__list li'))
+                             .map(function (el) { return el.__mi; }).filter(Boolean);
               tl.to(dc, { ease: EASE, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.4 }, at);
-              if (titleInner)     tl.to(titleInner, { ease: EASE, y: '0%', opacity: 1, duration: 0.35 }, at + 0.18);
-              if (dcLifts.length) tl.to(dcLifts,    { ease: EASE, y: 0, opacity: 1, duration: 0.35, stagger: 0.03 }, at + 0.21);
+              if (inners.length) tl.to(inners, { ease: EASE, y: '0%', opacity: 1, duration: 0.32, stagger: 0.045 }, at + 0.15);
             });
           } else if (card.classList.contains('card--case')) {
             // 02 case: TEXT first, then DESKTOP, then PHONE LAST — each device is a true MASK REVEAL
@@ -403,11 +423,27 @@
             if (textMasks.length) tl.to(textMasks, { ease: EASE, y: '0%', opacity: 1, duration: 0.5, stagger: { amount: 0.06, from: 'start' } }, leadIn + textAt);
             if (lifts.length)     tl.to(lifts,     { ease: EASE, y: 0, opacity: 1, duration: 0.5, stagger: { amount: 0.06, from: 'start' } }, leadIn + textAt + 0.04);
           }
-          if (ghosts.length)    tl.to(ghosts,    { ease: EASE, opacity: 0.06, duration: 0.7 }, leadIn);
+          // The "Range" ghost reveals at the SAME time as the statement title (both at leadIn) so
+          // they appear together as one unit. Other cards' ghosts keep their gentle fade at leadIn.
+          if (ghosts.length) {
+            var ghostStatement = card.classList.contains('card--statement');
+            tl.to(ghosts, { ease: EASE, opacity: ghostStatement ? 0.08 : 0.06, duration: 0.5 }, leadIn);
+          }
 
           // exit — text leaves first, then the card visual, handing off to the next card.
           // Skipped on the last card so it stays put and unpins cleanly into Testimonials.
-          if (!isLast) {
+          if (!isLast && card.classList.contains('card--duo')) {
+            // 01 exit: each element leaves on its own, IN ORDER (mirroring its staggered entrance),
+            // then the card panel wipes shut — same per-element sequencing as the reveal.
+            toArr(card.querySelectorAll('.do-card')).forEach(function (dc, di) {
+              var xat = 2.0 + di * 0.18;   // hold both cards fully shown, THEN exit — AI Videos first, then Websites
+              // each element's mask inner slides up behind its hidden edge (mirror of the reveal), in order
+              var inners = toArr(dc.querySelectorAll('.do-card__title, .do-card__tagline, .card__list li'))
+                             .map(function (el) { return el.__mi; }).filter(Boolean);
+              if (inners.length) tl.to(inners, { ease: EASE, y: '-100%', opacity: 0, duration: 0.28, stagger: 0.03 }, xat);
+              tl.to(dc, { ease: EASE, clipPath: 'inset(0% 0% 100% 0%)', duration: 0.3 }, xat + 0.34);
+            });
+          } else if (!isLast) {
             if (textMasks.length) tl.to(textMasks, { ease: EASE, y: '-100%', opacity: 0, duration: 0.3, stagger: { amount: sameTiming ? 0 : 0.04, from: 'start' } }, 1.65);
             if (more)             tl.to(more,      { ease: EASE, y: -16, opacity: 0, duration: 0.3 }, 1.65);
             if (lifts.length)     tl.to(lifts,     { ease: EASE, y: -90, opacity: 0, duration: 0.3, stagger: { amount: sameTiming ? 0 : 0.04, from: 'start' } }, 1.65);
@@ -570,20 +606,13 @@
   function initBackTop() {
     var btn = document.querySelector('[data-backtop]');
     if (!btn) return;
-    var idle = null;
     function sync() {
       btn.classList.toggle('is-visible', window.scrollY > window.innerHeight * 0.6);
       // the stage HUD counter owns the same corner while the pinned story runs — lift clear of it
       btn.classList.toggle('is-raised', !!document.querySelector('.stage__hud.is-visible'));
     }
-    function onScroll() {
-      sync();
-      btn.classList.add('is-scrolling');     // super-dim while scrolling (incl. the Lenis glide that keeps firing after the wheel)
-      clearTimeout(idle);
-      idle = setTimeout(function () { btn.classList.remove('is-scrolling'); }, 300);   // restore once it settles
-    }
     btn.addEventListener('click', function () { scrollToY(0); });
-    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('scroll', sync, { passive: true });
     window.addEventListener('resize', sync);
     // scroll events can fire before ScrollTrigger toggles the HUD's class — watch the
     // class directly so the raised state can never go stale after the last scroll tick
@@ -618,7 +647,8 @@
     var pop = document.querySelector('[data-startpop]');
     if (!pop) return;
     var triggers = Array.prototype.slice.call(document.querySelectorAll('[data-start]'));
-    var current = null, closeTimer = null;
+    var current = null, closeTimer = null, openedAt = 0;
+    var nowMs = function () { return (window.performance && performance.now) ? performance.now() : Date.now(); };
 
     function place(trigger) {
       pop.hidden = false;                       // unhide to measure
@@ -639,6 +669,7 @@
       triggers.forEach(function (x) { x.setAttribute('aria-expanded', 'false'); });
       trigger.setAttribute('aria-expanded', 'true');
       place(trigger);
+      openedAt = nowMs();
       requestAnimationFrame(function () { pop.classList.add('is-open'); });
     }
     function close() {
@@ -662,8 +693,10 @@
       if (current && !pop.contains(e.target) && !e.target.closest('[data-start]')) close();
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
-    window.addEventListener('scroll', function () { if (current) close(); }, { passive: true });
-    window.addEventListener('resize', function () { if (current) close(); });
+    // close when the user scrolls/resizes AWAY — but ignore the momentum/settle right after opening
+    // (Lenis keeps firing 'scroll' during its glide, which would otherwise dismiss it instantly).
+    window.addEventListener('scroll', function () { if (current && nowMs() - openedAt > 550) close(); }, { passive: true });
+    window.addEventListener('resize', function () { if (current && nowMs() - openedAt > 550) close(); });
   }
 
   /* ---------- Contact form modal (Web3Forms) ---------- */
@@ -809,6 +842,26 @@
     }
   }
 
+  /* ---------- Align the 01 cards' bullet rows across BOTH cards ----------
+     Each card's bullets wrap to different line counts, so corresponding rows drift apart.
+     Equalise each bullet PAIR (and the taglines) to the taller of the two so every row lines
+     up between the two cards — only mismatched rows get padded, so there's no global whitespace. */
+  function alignDuoBullets() {
+    var duo = document.querySelector('.card--duo');
+    if (!duo) return;
+    var cards = duo.querySelectorAll('.do-card');
+    if (cards.length < 2) return;
+    // rows = tagline + each bullet, in document order (titles are single-word, always one line)
+    var rowsA = Array.prototype.slice.call(cards[0].querySelectorAll('.do-card__tagline, .card__list li'));
+    var rowsB = Array.prototype.slice.call(cards[1].querySelectorAll('.do-card__tagline, .card__list li'));
+    var n = Math.min(rowsA.length, rowsB.length);
+    var i;
+    for (i = 0; i < n; i++) { rowsA[i].style.minHeight = ''; rowsB[i].style.minHeight = ''; }   // reset to natural
+    var maxes = [];
+    for (i = 0; i < n; i++) { maxes[i] = Math.max(rowsA[i].offsetHeight, rowsB[i].offsetHeight); }
+    for (i = 0; i < n; i++) { rowsA[i].style.minHeight = maxes[i] + 'px'; rowsB[i].style.minHeight = maxes[i] + 'px'; }
+  }
+
   /* ---------- Boot (deferred: libs already executed in order) ---------- */
   function boot() {
     initIcons();
@@ -822,9 +875,13 @@
     initStartPopover();
     initContactForm();
     alignGrids();
+    alignDuoBullets();
+    // re-equalise once the display fonts have loaded (fallback metrics differ → wrong wrap counts)
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignDuoBullets);
 
     window.addEventListener('load', function () {
       alignGrids();
+      alignDuoBullets();
       var a = document.querySelector('.nav__links a.is-active');
       if (a) moveNavIndicator(a);
       if (window.ScrollTrigger) window.ScrollTrigger.refresh();
@@ -834,6 +891,7 @@
       clearTimeout(rt);
       rt = setTimeout(function () {
         alignGrids();
+        alignDuoBullets();
         var a = document.querySelector('.nav__links a.is-active');
         if (a) moveNavIndicator(a);
         if (window.ScrollTrigger) window.ScrollTrigger.refresh();

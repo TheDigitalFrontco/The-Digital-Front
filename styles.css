@@ -206,9 +206,11 @@ a { color: inherit; text-decoration: none; }
 }
 .nav__name { font-family: var(--font-display); font-weight: 500; font-size: 32px; letter-spacing: -.01em; }
 
-.nav__links { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); width: max-content; display: flex; align-items: center; gap: 44px; white-space: nowrap; list-style: none; }
+.nav__links { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); width: max-content; display: flex; align-items: center; gap: 44px; white-space: nowrap; list-style: none; pointer-events: none; }
+/* the list box must not eat clicks meant for the CTA/brand beside it — only the links are clickable.
+   (In the single-row landscape/mobile nav the list spans the full width and would otherwise overlap them.) */
 .nav__links a {
-  position: relative;
+  position: relative; pointer-events: auto;
   font-size: 26px; font-weight: 500; color: rgba(255,255,255,.4);
   display: inline-flex; align-items: baseline; gap: 7px;
   transition: color .25s var(--ease);
@@ -280,6 +282,29 @@ a { color: inherit; text-decoration: none; }
 .t--tr { top: calc(var(--nav-h) + 18px); right: var(--pad); }
 .t--bl { bottom: 24px; left: var(--pad); }
 .t--br { bottom: 24px; right: var(--pad); }
+
+/* hero-only quick nav — barless (no bar/background), static; sits at the top of the hero and
+   scrolls away with it. Icon + label items, evenly aligned. Targets resolve via [data-jump]. */
+.hero-nav {
+  position: absolute; top: clamp(18px, 3.2vh, 34px); left: 0; right: 0;
+  z-index: 3; display: flex; align-items: center; justify-content: center;
+  gap: clamp(22px, 5vw, 64px); white-space: nowrap;
+}
+.hero-nav a {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-sans); font-size: clamp(13px, 1.05vw, 15px); font-weight: 500;
+  letter-spacing: .015em; color: rgba(255, 255, 255, .62);
+  text-shadow: 0 2px 14px rgba(13, 20, 31, .5);   /* soft shadow so the labels lift gently off the grid */
+  transition: color .25s var(--ease);
+}
+.hero-nav a svg {
+  width: 1.05em; height: 1.05em; stroke-width: 2;
+  color: var(--accent-2); opacity: .9;
+  filter: drop-shadow(0 2px 10px rgba(13, 20, 31, .5));   /* matching soft shadow on the icons */
+  transition: color .25s var(--ease), opacity .25s var(--ease), transform .25s var(--ease);
+}
+.hero-nav a:hover, .hero-nav a:focus-visible { color: #fff; }
+.hero-nav a:hover svg, .hero-nav a:focus-visible svg { color: #fff; opacity: 1; transform: translateY(-1px); }
 
 .hero__inner { position: relative; z-index: 2; max-width: 920px; }
 .hero__logo { width: clamp(64px, 11vw, 100px); height: auto; margin: 0 auto 22px; display: block; }
@@ -353,16 +378,16 @@ a { color: inherit; text-decoration: none; }
   margin-top: 18px; max-width: 48ch; text-wrap: pretty;
 }
 .card__list {
-  list-style: none; margin-top: 26px;
+  list-style: none; margin-top: 26px; padding-left: 0;   /* flush-left with the title (drop the <ul> default indent) */
   display: grid; grid-template-columns: 1fr; gap: 12px;   /* single column so every item stays on one line — two columns are too narrow at the capped layout width */
 }
-.card__list li {
-  font-size: 14.5px; color: var(--blue-100); padding-left: 20px; position: relative;
-  line-height: 1.4;
-}
-.card__list li::before {
-  content: "→"; position: absolute; left: 0; top: 0;
-  font-family: var(--font-mono); color: var(--accent-2);
+.card__list li { font-size: 14.5px; color: var(--blue-100); line-height: 1.4; }
+/* each bullet is a mask-reveal: the <li> is the hidden edge, its .msk__i inner (icon + text row)
+   slides up from behind it. So the flex row lives on the inner, not the <li>. */
+.card__list li .msk__i { display: flex; align-items: flex-start; gap: 10px; }
+.card__list li svg {            /* lucide renders <i data-lucide> into an <svg>; size it with the text */
+  flex: 0 0 auto; width: 1.05em; height: 1.05em; margin-top: .2em;
+  color: var(--accent-2); stroke-width: 2;
 }
 .card__list .df-em { color: #fff; }
 
@@ -385,6 +410,7 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 16px;
   padding: clamp(24px, 2.6vw, 44px);
+  box-shadow: 0 0 26px rgba(159,177,205,.12), 0 10px 30px rgba(0,0,0,.20);   /* soft cool glow + grounding shadow */
 }
 .do-card__title {
   font-family: var(--font-display); font-weight: 500;
@@ -397,9 +423,9 @@ a { color: inherit; text-decoration: none; }
 .do-card .card__desc { margin-top: 16px; }
 .do-card .card__list { margin-top: 20px; }
 
-/* idle motion — the swipe-in is scroll-driven from main.js; this is just the gentle bob */
+/* idle motion — the swipe-in is scroll-driven from main.js; this is just the gentle bob.
+   Both cards bob IN SYNC so their bullet rows stay aligned with each other at all times. */
 .has-anim .do-card__inner { animation: doFloat 7s ease-in-out infinite; }
-.has-anim .do-card:nth-child(2) .do-card__inner { animation-delay: -3.5s; }   /* desync so they don't bob in lockstep */
 @keyframes doFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 
 /* What we build — opener statement slide */
@@ -496,6 +522,12 @@ a { color: inherit; text-decoration: none; }
 }
 .card--case .case__word { top: 35%; }          /* sits in the upper band, behind the object */
 .card--case .case__word { display: none; }      /* wordmark removed on the CASE cards only — the statement keeps its "Range" ghost; 03 keeps .card__ghost */
+/* Statement "Range" backdrop: centre via inset:0 + margin:auto (NOT a transform), so it sits exactly
+   behind the title on every screen and GSAP's drift (translateY) can't knock it off-centre. */
+.card--statement .case__word {
+  top: auto; left: auto; inset: 0; margin: auto;
+  width: max-content; height: max-content; transform: none;
+}
 
 .case__object {
   position: absolute; left: 50%; z-index: 1;
@@ -548,6 +580,7 @@ a { color: inherit; text-decoration: none; }
   position: relative; z-index: 2; max-width: 460px;
   background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.14);
   border-radius: 18px; padding: clamp(30px, 3.4vw, 52px);
+  box-shadow: 0 0 26px rgba(159,177,205,.12), 0 10px 30px rgba(0,0,0,.20);   /* same soft glow as the offering cards */
 }
 .next-card__kicker { font-family: var(--font-mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--blue-200); }
 .next-card__title { font-family: var(--font-display); font-weight: 500; font-size: clamp(2.1rem, 4.2vw, 3.3rem); line-height: 1.05; letter-spacing: -.02em; color: #fff; margin-top: 14px; }
@@ -795,9 +828,8 @@ a { color: inherit; text-decoration: none; }
   transition: opacity .3s var(--ease), transform .3s var(--ease),
               background .2s var(--ease), bottom .3s var(--ease);
 }
-.backtop.is-visible { opacity: 1; transform: none; pointer-events: auto; }
-.backtop.is-visible.is-scrolling { opacity: .15; }                       /* super-dimmed while the page is actively scrolling */
-.backtop.is-visible:hover, .backtop.is-visible:focus-visible { opacity: 1; }   /* but reaching for it (hover/focus) always brings it full */
+.backtop.is-visible { opacity: .82; transform: none; pointer-events: auto; }   /* one steady active state — slightly less dominant, always clickable */
+.backtop.is-visible:hover, .backtop.is-visible:focus-visible { opacity: 1; }   /* reaching for it brings it full */
 .backtop:hover { background: var(--blue-800); transform: translateY(-2px); }
 .backtop:focus-visible { outline: 2px solid var(--blue-300); outline-offset: 2px; }
 .backtop.is-raised { bottom: 76px; }   /* lifted clear of the stage HUD counter while the pinned story runs */
@@ -827,8 +859,11 @@ a { color: inherit; text-decoration: none; }
   .nav__idx { font-size: 9px; }
   .nav__cta { padding: 7px 13px; font-size: 11px; }   /* smaller CTA */
 
-  .card__grid, .card__grid--step, .card__grid--duo { grid-template-columns: 1fr; gap: 32px; }
-  .has-anim .card.card--duo { padding-top: var(--nav-h); }   /* center the stacked pair in the area below the nav (no fixed bias that crowds short tablets) */
+  .card__grid, .card__grid--step { grid-template-columns: 1fr; gap: 32px; }
+  /* keep the two offering cards SIDE-BY-SIDE on portrait tablet/mobile too (landscape already does).
+     minmax(0,1fr) forces two EQUAL halves (plain 1fr lets a card with longer text grab more width). */
+  .card__grid--duo { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(14px, 2.6vw, 28px); align-items: stretch; }
+  .has-anim .card.card--duo { padding-top: var(--nav-h); }   /* center the pair in the area below the nav (no fixed bias that crowds short tablets) */
 
   /* 02 (tablet + phone): background wordmark gone — lift the case / statement / next content so it isn't bottom-heavy */
   .card--case .case__object { top: 40%; }
@@ -848,17 +883,27 @@ a { color: inherit; text-decoration: none; }
   .hero__ticks { display: none; }
   .card--step .card__grid--step { grid-template-columns: 1fr; }
 
+  /* phones: cap the device cluster so a WIDE phone (e.g. iPhone 15 Pro Max, 430px) renders the
+     showcase at the same size as a ~385px phone. Without this, the browser grows with 80vw while
+     the flanking phones stay pinned at their min-width, so wide phones look oversized/unbalanced. */
+  .case__object { width: min(310px, 80vw); }
+
   /* page counter (HUD) — smaller so it doesn't feel oversized on a phone */
   .has-anim .stage__hud { font-size: 9px; gap: 7px; bottom: 16px; letter-spacing: .1em; }
 
-  /* phone: smaller offering cards so the pair feels lighter and BOTH fit (sequence animation unchanged) */
-  .card__grid--duo { gap: 20px; }
-  .do-card { padding: 14px; border-radius: 11px; }
-  .do-card__title { font-size: clamp(1.3rem, 6vw, 1.65rem); }
-  .do-card__tagline { font-size: .82rem; margin-top: 3px; }
+  /* back-to-top: the HUD is tiny on phones (bottom 16px), so the raised state doesn't need the
+     full desktop lift — sit it just above the counter in the 01/02/03 sections instead of high up */
+  .backtop.is-raised { bottom: 44px; }
+
+  /* phone: the two offering cards sit SIDE-BY-SIDE — taller cards with generous breathing room between elements */
+  .card__grid--duo { gap: 12px; }
+  .do-card { padding: 22px 15px; border-radius: 12px; }
+  .do-card__title { font-size: clamp(1.15rem, 5.2vw, 1.5rem); }
+  .do-card__tagline { font-size: .82rem; margin-top: 7px; }
   .do-card .card__desc { font-size: .82rem; line-height: 1.4; margin-top: 7px; }
-  .do-card .card__list { margin-top: 9px; gap: 5px; }
-  .do-card .card__list li { font-size: 11px; line-height: 1.25; }
+  .do-card .card__list { margin-top: 18px; gap: 14px; }
+  .do-card .card__list li { font-size: 11.5px; line-height: 1.4; }
+  .do-card .card__list li .msk__i { gap: 9px; }
 
   /* 02 case: one left-aligned column on phones — title → description → See more */
   .case__foot { grid-template-columns: 1fr; justify-items: start; row-gap: 12px; padding: 0 var(--pad); bottom: clamp(48px, 9vh, 84px); }
@@ -907,10 +952,12 @@ a { color: inherit; text-decoration: none; }
 
   /* 02 — BIGGER device, sized to the available height (viewport − nav − foot/HUD) so it scales correctly
      across landscape heights and the overhanging phone always clears the title/desc */
-  .card--case .case__object { width: min(760px, 82vw, calc((100svh - var(--nav-h) - 100px) * 0.98)); top: calc(38% + (var(--nav-h) / 2)); }
-  .case__foot { bottom: clamp(20px, 4.5vh, 40px); }          /* compact, lifted above the HUD */
-  .case__title { white-space: nowrap; font-size: clamp(1.3rem, 4vh, 2.5rem); }   /* one line → shorter foot → room for a bigger device */
-  .case__desc { font-size: clamp(.76rem, 1.4vh, .98rem); max-width: 42ch; }
+  /* reserve more height for the foot + sit the device a touch higher so the overhanging phone keeps
+     a clear gap above the title/description (it was grazing the text on shorter landscape screens) */
+  .card--case .case__object { width: min(720px, 80vw, calc((100svh - var(--nav-h) - 150px) * 0.95)); top: calc(37% + (var(--nav-h) / 2)); }
+  .case__foot { bottom: clamp(22px, 5vh, 44px); row-gap: clamp(4px, 1vh, 8px); }   /* compact, lifted above the HUD; tighter title↔See-more */
+  .case__title { white-space: nowrap; font-size: clamp(1.3rem, 3.8vh, 2.3rem); line-height: 1; }   /* one line → shorter foot → room for the device */
+  .case__desc { font-size: clamp(.76rem, 1.4vh, .98rem); max-width: 38ch; }
   /* HUD tucked into the corner below the foot */
   .has-anim .stage__hud { bottom: clamp(8px, 1.6vh, 14px); font-size: 8px; gap: 6px; }
 
@@ -924,12 +971,17 @@ a { color: inherit; text-decoration: none; }
   .hero__scroll i { height: clamp(16px, 5vh, 34px); }
 }
 
-/* Very short landscape (phones rotated, ≤480px tall): shrink the device + foot further so it still fits */
+/* Very short landscape (phones rotated, ≤480px tall): size the device to the available HEIGHT so it
+   fills the stage like other screens instead of shrinking to a tiny block (the old 36vh cap). */
 @media (orientation: landscape) and (max-height: 480px) {
-  .card--case .case__object { width: min(720px, 72vw, 36vh); top: calc(40% + (var(--nav-h) / 2)); }
-  .case__title { font-size: clamp(1.3rem, 5vh, 2.1rem); }
-  .case__desc { font-size: clamp(.72rem, 2.2vh, .95rem); max-width: 40ch; }
-  .case__foot { bottom: clamp(14px, 4vh, 28px); }
+  /* sized to the available height AND sat higher; the flanking devices also overhang LESS here so
+     they keep clear of the title/description (they were dipping onto the text on these tiny screens) */
+  .card--case .case__object { width: min(340px, 78vw, calc((100svh - var(--nav-h) - 108px) * 1.0)); top: calc(33% + (var(--nav-h) / 2)); }
+  .showcase .dev-rv--phone  { bottom: -2%; }
+  .showcase .dev-rv--tablet { bottom: -1%; }
+  .case__title { font-size: clamp(1.2rem, 4.6vh, 1.9rem); }
+  .case__desc { font-size: clamp(.72rem, 2.2vh, .95rem); max-width: 34ch; }
+  .case__foot { bottom: clamp(12px, 3.4vh, 24px); row-gap: 4px; }
   .has-anim .stage__hud { bottom: clamp(6px, 1.4vh, 12px); }
 }
 

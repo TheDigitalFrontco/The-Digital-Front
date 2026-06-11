@@ -31,7 +31,7 @@
 
   <!-- Design tokens (single source of truth) + site styles -->
   <link rel="stylesheet" href="colors_and_type.css">
-  <link rel="stylesheet" href="styles.css?v=91">
+  <link rel="stylesheet" href="styles.css?v=110">
 </head>
 <body data-theme="dark">
 
@@ -64,7 +64,7 @@
       <li><a href="#do"    data-jump="do"><span class="nav__idx">01</span> What we do</a></li>
       <li><a href="#build" data-jump="build"><span class="nav__idx">02</span> What we build</a></li>
       <li><a href="#work"  data-jump="work"><span class="nav__idx">03</span> How we work</a></li>
-      <li><a href="#quotes" data-jump="quotes"><span class="nav__idx">04</span> Kind words</a></li>
+      <li><a href="#quotes" data-jump="quotes"><span class="nav__idx">04</span> Testimonials</a></li>
     </ul>
     <a class="btn btn-primary menu__cta" href="#start" data-start aria-haspopup="true" aria-expanded="false">Start a Project <span class="btn__caret" aria-hidden="true">&rarr;</span></a>
     <div class="menu__contact">
@@ -82,6 +82,13 @@
       <span class="t t--bl">EST · 2026</span>
       <span class="t t--br">AI · WEB</span>
     </div>
+
+    <!-- hero-only quick nav — barless, sits at the top of the hero and scrolls away with it -->
+    <nav class="hero-nav" aria-label="Quick links">
+      <a href="#do"     data-jump="do"><i data-lucide="info" aria-hidden="true"></i>About</a>
+      <a href="#quotes" data-jump="quotes"><i data-lucide="message-square-quote" aria-hidden="true"></i>Testimonials</a>
+      <a href="#start"  data-jump="start"><i data-lucide="mail" aria-hidden="true"></i>Contact</a>
+    </nav>
 
     <div class="hero__inner">
       <img class="hero__logo" src="assets/logo-source-cropped.png" alt="The Digital Front" width="104" height="104">
@@ -123,12 +130,12 @@
                 <h3 class="do-card__title">AI Videos</h3>
                 <p class="do-card__tagline">Stories, told.</p>
                 <ul class="card__list">
-                  <li>AI-generated videos &amp; reels</li>
-                  <li>Short-form for Instagram, TikTok &amp; Facebook</li>
-                  <li>UGC-style content</li>
-                  <li>Carousels &amp; static posts</li>
-                  <li>Content calendars &amp; strategy</li>
-                  <li>One-off projects or monthly retainers</li>
+                  <li><i data-lucide="sparkles" aria-hidden="true"></i>AI-generated videos &amp; reels</li>
+                  <li><i data-lucide="smartphone" aria-hidden="true"></i>Short-form for Instagram, TikTok &amp; Facebook</li>
+                  <li><i data-lucide="users" aria-hidden="true"></i>UGC-style content</li>
+                  <li><i data-lucide="images" aria-hidden="true"></i>Carousels &amp; static posts</li>
+                  <li><i data-lucide="calendar-days" aria-hidden="true"></i>Content calendars &amp; strategy</li>
+                  <li><i data-lucide="repeat" aria-hidden="true"></i>One-off projects or monthly retainers</li>
                 </ul>
               </div>
             </div>
@@ -137,12 +144,12 @@
                 <h3 class="do-card__title">Websites</h3>
                 <p class="do-card__tagline">Sites, finished.</p>
                 <ul class="card__list">
-                  <li>Single-page &amp; multi-page websites</li>
-                  <li>Custom animated front-end <em class="df-em">(Signature work)</em></li>
-                  <li>Shopify stores</li>
-                  <li>WordPress sites</li>
-                  <li>Fully responsive &amp; built to convert</li>
-                  <li>Connected, live, and ready</li>
+                  <li><i data-lucide="layout" aria-hidden="true"></i>Single-page &amp; multi-page websites</li>
+                  <li><i data-lucide="code" aria-hidden="true"></i>Custom animated front-end</li>
+                  <li><i data-lucide="shopping-bag" aria-hidden="true"></i>Shopify stores</li>
+                  <li><i data-lucide="globe" aria-hidden="true"></i>WordPress sites</li>
+                  <li><i data-lucide="monitor-smartphone" aria-hidden="true"></i>Fully responsive &amp; built to convert</li>
+                  <li><i data-lucide="rocket" aria-hidden="true"></i>Connected, live, and ready</li>
                 </ul>
               </div>
             </div>
@@ -278,10 +285,10 @@
     </div><!-- /stage__pin -->
   </section>
 
-  <!-- ===================== TESTIMONIALS — Kind words ===================== -->
+  <!-- ===================== TESTIMONIALS ===================== -->
   <section class="quotes" data-theme="dark" id="quotes">
     <figure class="quotes__fig" data-quotes aria-roledescription="carousel" aria-label="Client testimonials">
-      <p class="eyebrow quotes__kicker">04 — Kind words</p>
+      <p class="eyebrow quotes__kicker">04 — Testimonials</p>
 
       <div class="quotes__stage">
         <blockquote class="quote is-active" data-quote data-note="Translated">&ldquo;Wow, it looks so good! <em class="df-em">Thank you so much,</em> you&rsquo;ve been such a great help.&rdquo;</blockquote>
@@ -329,7 +336,7 @@
           <a href="#do"     data-jump="do">What we do</a>
           <a href="#build"  data-jump="build">What we build</a>
           <a href="#work"   data-jump="work">How we work</a>
-          <a href="#quotes" data-jump="quotes">Kind words</a>
+          <a href="#quotes" data-jump="quotes">Testimonials</a>
           <a href="#start"  data-jump="start">Start a project</a>
         </nav>
 
@@ -441,6 +448,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
-  <script src="main.js?v=71" defer></script>
+  <script src="main.js?v=91" defer></script>
 </body>
 </html>
