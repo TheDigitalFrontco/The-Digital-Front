@@ -600,6 +600,33 @@
       entries.forEach(function (e) { if (e.isIntersecting) play(e.target); else e.target.pause(); });
     }, { threshold: 0.2 });
     vids.forEach(function (v) { io.observe(v); });
+
+    // preload="metadata" keeps first paint light, but then each clip only fetches
+    // when it scrolls into view — too slow on a thin connection (every clip but the
+    // first lands blank). So once the page has loaded, quietly pull the clips into
+    // the browser cache one at a time, in scroll order, so each is warm before you
+    // reach it and the connection is never hit with all six at once.
+    if (document.readyState === 'complete') warmVideos(vids);
+    else window.addEventListener('load', function () { warmVideos(vids); });
+  }
+
+  // Sequential cache warmer: fetch the full clips back-to-back (never in parallel)
+  // so a slow link fills the earliest-seen clips first. When a clip then actually
+  // plays, its request is served from cache. Touches the HTTP cache only, not the
+  // <video> elements, so it can't trigger off-screen playback or jank the pin.
+  function warmVideos(vids) {
+    if (typeof fetch !== 'function') return;
+    var i = 0;
+    (function next() {
+      if (i >= vids.length) return;
+      var v = vids[i++];
+      var src = v.currentSrc || v.getAttribute('src');
+      if (!src) { next(); return; }
+      fetch(src, { cache: 'force-cache' })
+        .then(function (r) { return r.blob(); })
+        .catch(function () {})
+        .then(next);
+    })();
   }
 
   /* ---------- Back to top ---------- */
