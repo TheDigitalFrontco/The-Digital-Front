@@ -846,7 +846,9 @@ a { color: inherit; text-decoration: none; }
      (brand + CTA on top, the section links centred below), no burger */
   :root { --nav-h: 130px; }
   .nav__inner { align-items: flex-start; padding: 18px var(--pad) 0; gap: 12px; }   /* logo + CTA a touch lower from the top */
-  .nav.is-visible { animation: navDrop .5s var(--ease) both; }                       /* clear drop-in on appear */
+  /* drop-in on appear; `backwards` (not `both`) so the animation doesn't forwards-fill and swallow the
+     exit — once it ends, the .nav transition owns the state and slides/fades it back up on hide */
+  .nav.is-visible { animation: navDrop .5s var(--ease) backwards; }
   .nav__burger { display: none !important; }
   .nav__links, .nav__cta { display: flex; }
   .nav__mark img { width: 30px; }

@@ -586,10 +586,12 @@
   }
 
 
-  /* ---------- Showcase videos — play only while on screen ----------
-     Filling all six device screens with looping clips that ALL decode at once
-     (even off-screen) would jank the pinned scroll. Play each only while it's in
-     view, pause it otherwise. Muted + playsinline so autoplay is always allowed. */
+  /* ---------- Showcase videos — load + play ONLY while on screen ----------
+     The clips are preload="none" with no autoplay attribute, so nothing downloads until a card is
+     near the viewport. The observer calls play() (which triggers the load) just before a card scrolls
+     in, and pauses on the way out. This keeps the network quiet on the video-less sections — otherwise
+     the six autoplay/looping clips hold media connections open and the browser shows "loading" forever.
+     Muted + playsinline so JS-driven play is always allowed. */
   function initVideos() {
     var vids = Array.prototype.slice.call(document.querySelectorAll('.frame__screen video'));
     if (!vids.length) return;
@@ -598,7 +600,7 @@
     if (!('IntersectionObserver' in window)) { vids.forEach(play); return; }
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { if (e.isIntersecting) play(e.target); else e.target.pause(); });
-    }, { threshold: 0.2 });
+    }, { threshold: 0.1, rootMargin: '300px 0px' });   // start loading a touch before the card arrives
     vids.forEach(function (v) { io.observe(v); });
   }
 
