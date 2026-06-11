@@ -862,6 +862,42 @@
     for (i = 0; i < n; i++) { rowsA[i].style.minHeight = maxes[i] + 'px'; rowsB[i].style.minHeight = maxes[i] + 'px'; }
   }
 
+  /* ---------- Per-section scroll speed ----------
+     Sections 01 (do) + 02 (build) carry the heavy scrubbed card animations, so scrolling there is
+     slowed to a more deliberate pace; everywhere else (hero, 03, testimonials, CTA, footer) keeps the
+     natural speed. Lenis reads its wheel/touch multipliers off the VirtualScroll live, so we just
+     retune them whenever the scroll position crosses into / out of the 01+02 band. */
+  function initSectionScrollSpeed() {
+    var l = App.lenis;
+    if (!l) { window.addEventListener('load', initSectionScrollSpeed, { once: true }); return; }   // wait for deferred Lenis
+    if (!l.virtualScroll || l.__sectionSpeed) return;
+    l.__sectionSpeed = true;                          // guard against double-binding
+    var vs = l.virtualScroll;
+    var NORMAL = { wheel: 0.7, touch: 0.95 }, SLOW = { wheel: 0.42, touch: 0.58 };
+    // 01 (do) + 02 (build) scroll slow — EXCEPT the 02 opener "A glimpse of the range…" statement,
+    // which has no scrubbed media to dwell on, so it stays at the natural speed.
+    var cards = Array.prototype.slice.call(document.querySelectorAll('[data-card][data-section="do"], [data-card][data-section="build"]'))
+      .filter(function (c) { return !c.classList.contains('card--statement'); });
+    var cur = null;
+    function set(slow) {
+      if (slow === cur) return;
+      cur = slow;
+      var s = slow ? SLOW : NORMAL;
+      l.options.wheelMultiplier = s.wheel; l.options.touchMultiplier = s.touch;
+      if (vs.options) { vs.options.wheelMultiplier = s.wheel; vs.options.touchMultiplier = s.touch; }
+    }
+    function update() {
+      var y = window.scrollY, slow = false;
+      for (var i = 0; i < cards.length; i++) {
+        var st = cards[i].__st;                        // each card's pinned scroll band (live; updates on refresh)
+        if (st && y >= st.start - 1 && y < st.end - 1) { slow = true; break; }
+      }
+      set(slow);
+    }
+    l.on('scroll', update);
+    update();
+  }
+
   /* ---------- Boot (deferred: libs already executed in order) ---------- */
   function boot() {
     initIcons();
@@ -871,6 +907,7 @@
     initVideos();
     initBackTop();
     initStage();
+    initSectionScrollSpeed();
     initNav();
     initStartPopover();
     initContactForm();
