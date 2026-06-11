@@ -873,7 +873,7 @@
     if (!l.virtualScroll || l.__sectionSpeed) return;
     l.__sectionSpeed = true;                          // guard against double-binding
     var vs = l.virtualScroll;
-    var NORMAL = { wheel: 0.7, touch: 0.95 }, SLOW = { wheel: 0.42, touch: 0.58 };
+    var NORMAL = { wheel: 0.7, touch: 0.95 }, SLOW = { wheel: 0.36, touch: 0.54 };
     // 01 (do) + 02 (build) scroll slow — EXCEPT the 02 opener "A glimpse of the range…" statement,
     // which has no scrubbed media to dwell on, so it stays at the natural speed.
     var cards = Array.prototype.slice.call(document.querySelectorAll('[data-card][data-section="do"], [data-card][data-section="build"]'))
