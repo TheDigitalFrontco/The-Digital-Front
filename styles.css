@@ -865,11 +865,8 @@ a { color: inherit; text-decoration: none; }
   .card__grid--duo { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(14px, 2.6vw, 28px); align-items: stretch; }
   .has-anim .card.card--duo { padding-top: var(--nav-h); }   /* center the pair in the area below the nav (no fixed bias that crowds short tablets) */
 
-  /* 02 (tablet + phone): background wordmark gone — lift the case / statement / next content so it isn't bottom-heavy.
-     The device centres at 40%, but on SHORT viewports (e.g. iPhone in Safari ≈745svh, toolbars eating ~190px)
-     it lifts up to ~35% so the overhanging phones keep the same gap above the title that tall phones have.
-     Uses svh (the stable small-viewport height) so it never jumps when Safari's toolbar hides/shows on scroll. */
-  .card--case .case__object { top: calc(40% - clamp(0px, (840px - 100svh) * 0.38, 44px)); }
+  /* 02 (tablet + phone): background wordmark gone — lift the case / statement / next content so it isn't bottom-heavy */
+  .card--case .case__object { top: 40%; }
   .card--case .case__foot { bottom: clamp(74px, 13vh, 120px); padding-right: calc(var(--pad) + 40px); }   /* iPads: trim the button-clearance gap so the desc sits a bit further right (still clears the back-to-top) */
   .has-anim .card.card--next { padding: var(--nav-h) 0 60px; }   /* statement reverts to centred so its restored "Range" ghost sits behind the title */
 
@@ -889,9 +886,9 @@ a { color: inherit; text-decoration: none; }
   /* phones: cap the device cluster so a WIDE phone (e.g. iPhone 15 Pro Max, 430px) renders the
      showcase at the same size as a ~385px phone. Without this, the browser grows with 80vw while
      the flanking phones stay pinned at their min-width, so wide phones look oversized/unbalanced. */
-  /* Cap by width AND available height — a mild height term that only trims the device on genuinely
-     short phones (the bulk of the short-phone fix is the repositioning in the portrait block below). */
-  .case__object { width: min(310px, 80vw, calc((100svh - 120px) * 0.46)); }
+  /* Natural size on phones; the height term only trims the device on very short phones (≲720svh) as a
+     safety so it never collides with the nav — it does NOT bind on normal phones (iPhone, etc.). */
+  .case__object { width: min(310px, 80vw, calc((100svh - 40px) * 0.46)); }
 
   /* page counter (HUD) — smaller so it doesn't feel oversized on a phone */
   .has-anim .stage__hud { font-size: 9px; gap: 7px; bottom: 16px; letter-spacing: .1em; }
@@ -911,7 +908,10 @@ a { color: inherit; text-decoration: none; }
   .do-card .card__list li .msk__i { gap: 9px; }
 
   /* 02 case: one left-aligned column on phones — title → description → See more */
-  .case__foot { grid-template-columns: 1fr; justify-items: start; row-gap: 12px; padding: 0 var(--pad); bottom: clamp(40px, 7svh, 76px); }
+  /* .card--case specificity so this beats the iPad rule (.card--case .case__foot) above. On SHORT phones
+     (iPhone in Safari ≈745svh) the foot drops toward the bottom to open the device→title gap; tall phones
+     keep the same position. svh-based (stable) → no jump when Safari's toolbar hides/shows. */
+  .card--case .case__foot { grid-template-columns: 1fr; justify-items: start; row-gap: 12px; padding: 0 var(--pad); bottom: clamp(40px, calc(13svh - clamp(0px, (840px - 100svh) * 0.55, 70px)), 120px); }
   .case__desc { grid-column: 1; grid-row: 2; justify-self: start; text-align: left; max-width: 40ch; }
   .case__foot--linked .case__desc { grid-row: 2; align-self: start; transform: none; }   /* undo the desktop centre-offset when stacked */
   .case__more { grid-row: 3; }
