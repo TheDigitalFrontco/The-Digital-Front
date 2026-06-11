@@ -588,6 +588,14 @@ a { color: inherit; text-decoration: none; }
 .next-card__title .df-em { font-style: italic; color: #fff; }
 .next-card__desc { color: var(--fg2); margin-top: 14px; font-size: clamp(1rem, 1.3vw, 1.15rem); }
 .next-card .btn { margin-top: 26px; }
+/* this CTA is the one button GSAP scrub-animates on scroll (translateY, the `lifts` target).
+   The base .btn `transition: transform .12s` would chase that per-frame scrub with a 120ms ease
+   and stutter on mobile — so drop the transform transition here (keep hover's bg/colour easing)
+   and give it its own compositor layer for a smooth scrub. */
+.has-anim .next-card .btn {
+  transition: background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease);
+  will-change: transform, opacity;
+}
 
 /* --- device frames (the swappable "hero objects") --- */
 .card__media { display: grid; place-items: center; }
