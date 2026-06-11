@@ -29,13 +29,13 @@
     try {
       var isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       var lenis = new window.Lenis({
-        lerp: 0.06,           // wheel smoothing — LOWER = slower, longer glide. (Lenis ignores `duration`
-                              // whenever lerp is set, so this — not duration — is what controls the wheel.)
+        lerp: 0.09,           // wheel smoothing — HIGHER = snappier, more responsive glide (Lenis default .1).
+                              // (Lenis ignores `duration` whenever lerp is set, so this controls the wheel feel.)
         easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
         smoothWheel: true,
-        wheelMultiplier: 0.3,  // distance moved per wheel notch (default 1). LOWER = less scroll per
-                               // gesture, so the scrubbed card animations advance gently at a normal
-                               // scroll instead of blasting through — like scrolling slowly by default.
+        wheelMultiplier: 0.7,  // distance moved per wheel notch (default 1). Tuned for a natural scroll
+                               // pace — quick enough to feel normal, still gentle on the scrubbed card
+                               // animations (the earlier 0.3 felt sluggish).
         autoRaf: false,       // WE drive lenis.raf (gsap ticker below, or the rAF fallback). Without this
                               // Lenis ALSO runs its own rAF with performance.now() while the ticker feeds it
                               // gsap-time — two clocks fighting => corrupted deltas => scroll stalls/lags.
@@ -44,10 +44,10 @@
         // the drag stays 1:1 under the finger, but the released glide is ~1/3 as long and
         // settles smoothly, so a hard swipe advances about one card instead of four.
         syncTouch: isTouch,
-        touchMultiplier: 0.48,         // touch drag distance — scaled with wheelMultiplier so phones/tablets
-                                       // keep the same gentle scroll-to-animation pace as desktop
-        touchInertiaMultiplier: 10,    // fling glide distance (Lenis default 35) — kept short so a hard swipe doesn't blast through
-        syncTouchLerp: 0.08            // smooth catch-up to the finger
+        touchMultiplier: 0.95,         // touch drag distance — near 1:1, natural finger tracking
+                                       // (scaled up with wheelMultiplier so touch matches the desktop pace)
+        touchInertiaMultiplier: 14,    // fling glide distance (Lenis default 35) — natural but still short enough that a hard swipe doesn't blast through pinned cards
+        syncTouchLerp: 0.1             // snappier catch-up to the finger
       });
       App.lenis = lenis;
       window.__lenis = lenis;            // exposed for debugging
