@@ -560,6 +560,7 @@ a { color: inherit; text-decoration: none; }
   max-width: 34ch; text-align: right; color: var(--blue-100);
   font-size: clamp(1rem, 1.35vw, 1.22rem); line-height: 1.5;
 }
+.case__desc-br { display: none; }   /* the forced break only kicks in on phones (re-enabled below) */
 /* AI Videos: the desc's CENTER sits on the divider line between the title and the
    See-more link — bottom anchored to the title's baseline, then dropped half its
    own height so the line bisects it. */
@@ -913,6 +914,7 @@ a { color: inherit; text-decoration: none; }
      keep the same position. svh-based (stable) → no jump when Safari's toolbar hides/shows. */
   .card--case .case__foot { grid-template-columns: 1fr; justify-items: start; row-gap: 12px; padding: 0 var(--pad); bottom: clamp(40px, calc(13svh - clamp(0px, (840px - 100svh) * 0.55, 70px)), 120px); }
   .case__desc { grid-column: 1; grid-row: 2; justify-self: start; text-align: left; max-width: 40ch; }
+  .case__desc-br { display: inline; }   /* phones: break "Responsive websites that stay sharp" / "from phone to desktop." */
   .case__foot--linked .case__desc { grid-row: 2; align-self: start; transform: none; }   /* undo the desktop centre-offset when stacked */
   .case__more { grid-row: 3; }
 }
