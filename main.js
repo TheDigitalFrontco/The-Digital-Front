@@ -705,6 +705,7 @@
     if (!modal) return;
     var form = modal.querySelector('[data-form-el]');
     var done = modal.querySelector('[data-form-done]');
+    var intro = modal.querySelector('[data-form-intro]');   // header (eyebrow + title + sub); hidden alongside the form on success
     var errEl = modal.querySelector('[data-form-error]');
     var submitBtn = modal.querySelector('[data-submit]');
     var submitLabel = submitBtn ? submitBtn.innerHTML : 'Send';
@@ -718,6 +719,7 @@
         for (var i = 0; i < inv.length; i++) inv[i].classList.remove('is-invalid');
       }
       if (done) done.hidden = true;
+      if (intro) intro.hidden = false;
       if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
       modal.hidden = false;
       requestAnimationFrame(function () { modal.classList.add('is-open'); });
@@ -817,7 +819,7 @@
         })
           .then(function (r) { return r.json(); })
           .then(function (json) {
-            if (json && json.success) { form.hidden = true; if (done) done.hidden = false; clearDraft(); }
+            if (json && json.success) { form.hidden = true; if (intro) intro.hidden = true; if (done) done.hidden = false; clearDraft(); }
             else { showError((json && json.message) || 'Something went wrong. Please try again.'); }
           })
           .catch(function () { showError('Network error. Please email create@thedigitalfront.co directly.'); })

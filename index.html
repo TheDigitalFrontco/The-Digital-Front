@@ -396,9 +396,11 @@
     <div class="modal__backdrop" data-modal-close></div>
     <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="form-title" data-lenis-prevent>
       <button class="modal__close" type="button" aria-label="Close" data-modal-close>&times;</button>
-      <p class="eyebrow">Start a project</p>
-      <h2 class="modal__title" id="form-title">Tell us what you&rsquo;re building.</h2>
-      <p class="modal__sub">A few lines is plenty, we&rsquo;ll take it from there.</p>
+      <div data-form-intro>
+        <p class="eyebrow">Start a project</p>
+        <h2 class="modal__title" id="form-title">Tell us what you&rsquo;re building.</h2>
+        <p class="modal__sub">A few lines is plenty, we&rsquo;ll take it from there.</p>
+      </div>
 
       <form class="form" data-form-el novalidate>
         <input type="hidden" name="access_key" value="30ff3b82-9b29-47c5-acd4-8424290e248a">
@@ -448,6 +450,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
-  <script src="main.js?v=96" defer></script>
+  <script src="main.js?v=98" defer></script>
 </body>
 </html>
