@@ -10,6 +10,7 @@
   --wrap: 1180px;
   --pad: clamp(20px, 5vw, 56px);
   --nav-h: 192px;   /* multiple of the 64px grid so the bottom rule lands exactly on a background grid line */
+  --grid-cell: 64px;   /* background grid square; on phones it becomes a fraction of the width so every phone shows the SAME number of columns */
 
   /* section background colors (matte, distinct per section) */
   --bg-do:    #1E2C40;   /* What we do  — deep navy   */
@@ -134,6 +135,7 @@ a { color: inherit; text-decoration: none; }
   transition: background .16s var(--ease), color .16s var(--ease);
 }
 .modal__close:hover { background: var(--grey-100); color: var(--blue-950); }
+.modal__close::before { content: ''; position: absolute; inset: -5px; }   /* extend tap target to 44x44 without enlarging the visible 34px control */
 .modal .eyebrow { display: block; padding-left: 0; margin-bottom: 12px; }
 .modal__title { font-family: var(--font-display); font-weight: 500; font-size: clamp(1.6rem, 4vw, 2rem); line-height: 1.08; letter-spacing: -.015em; color: var(--blue-950); }
 .modal__sub { font-size: 14.5px; color: var(--grey-500); margin-top: 8px; }
@@ -142,7 +144,7 @@ a { color: inherit; text-decoration: none; }
 .form__row { margin-bottom: 16px; }
 .form .lab { display: block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--grey-500); margin-bottom: 7px; }
 .form .field {
-  width: 100%; font-family: var(--font-sans); font-size: 15px; color: var(--blue-950);
+  width: 100%; font-family: var(--font-sans); font-size: 16px; color: var(--blue-950);   /* 16px: anything smaller makes iOS Safari zoom the page on focus */
   padding: 12px 14px; border: 1px solid var(--grey-300); border-radius: var(--r-2); background: #fff;
   transition: border-color .16s var(--ease), box-shadow .16s var(--ease);
 }
@@ -158,7 +160,7 @@ a { color: inherit; text-decoration: none; }
 .modal ::-moz-selection { background: rgba(62, 88, 127, .28); color: var(--blue-950); }
 .form .hp { position: absolute; left: -9999px; width: 0; height: 0; opacity: 0; }
 .form__actions { display: flex; align-items: center; gap: 18px; margin-top: 22px; flex-wrap: wrap; }
-.form__actions .btn-ghost { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--grey-500); padding: 0; }
+.form__actions .btn-ghost { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--grey-500); padding: 0; display: inline-flex; align-items: center; min-height: 44px; }   /* 44px tap target (and vertically aligns the text link with the Send button) */
 .form__actions .btn-ghost:hover { color: var(--blue-700); }
 .form__error { font-size: 13.5px; color: var(--critical); margin-top: 14px; display: none; }
 .form.has-error .form__error { display: block; }
@@ -177,9 +179,8 @@ a { color: inherit; text-decoration: none; }
 .nav {
   position: fixed; inset: 0 0 auto 0; z-index: 60;
   height: var(--nav-h);
-  /* translucent frosted header with a hairline rule (all screen sizes) */
-  background: rgba(13, 20, 31, .45);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  /* solid header (opaque — scrolling content never shows through); dark blue lifted a touch off near-black */
+  background: #141E2D;
   color: #fff;
   border-bottom: 1px solid rgba(255,255,255,.15);
   transform: translateY(-102%);
@@ -231,27 +232,6 @@ a { color: inherit; text-decoration: none; }
 
 .nav__cta { padding: 16px 30px; font-size: 20px; }
 
-.nav__burger { display: none; }
-
-/* mobile menu */
-.menu {
-  position: fixed; inset: 0; z-index: 55;
-  background: var(--blue-950);
-  padding: calc(var(--nav-h) + 24px) var(--pad) 40px;
-  display: flex; flex-direction: column; gap: 18px;
-}
-.menu[hidden] { display: none; }
-.menu__links { list-style: none; display: flex; flex-direction: column; gap: 4px; }
-.menu__links a {
-  font-family: var(--font-display); font-weight: 500; font-size: clamp(28px, 9vw, 44px);
-  padding: 10px 0; display: flex; align-items: baseline; gap: 14px;
-  border-bottom: 1px solid var(--border);
-}
-.menu__links .nav__idx { font-size: 13px; }
-.menu__cta { align-self: flex-start; margin-top: 10px; }
-.menu__contact { margin-top: auto; display: flex; flex-direction: column; gap: 8px;
-  font-family: var(--font-mono); font-size: 13px; color: var(--fg2); }
-
 /* ============================================================================
    HERO
    ========================================================================== */
@@ -267,8 +247,8 @@ a { color: inherit; text-decoration: none; }
   background-image:
     linear-gradient(var(--texture) 1px, transparent 1px),
     linear-gradient(90deg, var(--texture) 1px, transparent 1px);
-  background-size: 64px 64px;
-  background-position: 0 var(--hero-grid-y, 0);   /* JS shifts rows so they continue into the next section's grid (no double line at the seam) */
+  background-size: var(--grid-cell) var(--grid-cell);
+  background-position: var(--stage-grid-x, 0px) var(--hero-grid-y, 0);   /* JS aligns columns (x, to the stage grid) + rows (y) so the two grids stay continuous across the seam */
   -webkit-mask-image: radial-gradient(circle at 50% 42%, #000 30%, transparent 78%);
           mask-image: radial-gradient(circle at 50% 42%, #000 30%, transparent 78%);
   opacity: .7;
@@ -327,7 +307,7 @@ a { color: inherit; text-decoration: none; }
 .hero__actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 38px; }
 
 .hero__scroll {
-  position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 26px; left: 50%; transform: translateX(calc(-50% + var(--scroll-shift, 0px)));
   display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 2;
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .26em;
   text-transform: uppercase; color: var(--fg3);
@@ -401,32 +381,75 @@ a { color: inherit; text-decoration: none; }
 .card--step .card__title { font-size: clamp(1.9rem, 4.6vw, 3rem); }
 .card--step .card__body { max-width: 620px; padding-top: clamp(4px, 1.5vw, 22px); }
 
-/* What we do — two offering cards: centered in the viewport, spaced, scroll-revealed, idle-floating */
-.has-anim .card.card--duo { padding: var(--nav-h) 0 0; }   /* center the pair in the area BELOW the nav — full-screen centering left the top gap ~192px tighter than the bottom on every desktop height (3px vs 195px at 824-tall windows) */
-.has-anim .card--duo .card__grid--duo { transform: translateY(-26px); }   /* nudge the pair a touch above dead-centre */
-.card__grid--duo { grid-template-columns: 1fr 1fr; gap: clamp(40px, 5vw, 88px); align-items: stretch; }
-.do-card {
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 16px;
-  padding: clamp(24px, 2.6vw, 44px);
-  box-shadow: 0 0 26px rgba(159,177,205,.12), 0 10px 30px rgba(0,0,0,.20);   /* soft cool glow + grounding shadow */
-}
-.do-card__title {
-  font-family: var(--font-display); font-weight: 500;
-  font-size: clamp(2rem, 3.6vw, 3.1rem); line-height: 1; letter-spacing: -.02em; color: #fff;
-}
-.do-card__tagline {
-  font-family: var(--font-display); font-style: italic; font-weight: 400;
-  font-size: clamp(1.05rem, 1.5vw, 1.3rem); color: var(--blue-200); margin-top: 10px;
-}
-.do-card .card__desc { margin-top: 16px; }
-.do-card .card__list { margin-top: 20px; }
+/* What we do — LOCKED PANELS (01 AI Video → 02 Websites): each panel locks in place and reveals its
+   number / title / tagline + icons one by one. The two panels are stacked full-height; once 01 is done it
+   stays put and the strip pans up (01 scrolls away, 02 scrolls in), then 02 reveals the same way. */
+.has-anim .card.card--steps { padding: var(--nav-h) 0 0; }
+.htl { --htl-dot: 56px; --htl-shift: 0px; position: relative; width: min(720px, 100% - (var(--pad) * 2)); margin-inline: auto; height: calc(100svh - var(--nav-h)); overflow: hidden; transform: translateX(var(--htl-shift)); }   /* shift nudges the timeline line onto the nearest background grid column */
+.htl__track { position: absolute; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; will-change: transform; }   /* two full-height panels stacked; the timeline pans from one to the next */
+.htl__seg { display: flex; flex-direction: column; gap: clamp(18px, 2.6vh, 30px); padding: clamp(24px, 6vh, 64px) 0 0 34px; }   /* sized to its content so the pan = one panel's height; left inset keeps the dots' glow inside the clip */
 
-/* idle motion — the swipe-in is scroll-driven from main.js; this is just the gentle bob.
-   Both cards bob IN SYNC so their bullet rows stay aligned with each other at all times. */
-.has-anim .do-card__inner { animation: doFloat 7s ease-in-out infinite; }
-@keyframes doFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+/* segment label — number beside the title+tagline column, vertically centred between them */
+.htl__head { display: flex; align-items: center; gap: clamp(10px, 1.4vw, 18px); padding-left: calc(var(--htl-dot) + clamp(16px, 2vw, 28px)); }   /* clear of the line + dots */
+.htl__titlecol { display: flex; flex-direction: column; }
+.htl__num { font-family: var(--font-mono); font-weight: 600; font-size: clamp(1.1rem, 2vw, 1.6rem); letter-spacing: -.02em; color: var(--accent-2); }
+.htl__name { font-family: var(--font-display); font-weight: 500; font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1; letter-spacing: -.02em; color: #fff; }
+.htl__tag { margin-top: clamp(-4px, -0.4vh, -2px); font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(1.05rem, 1.6vw, 1.4rem); color: var(--blue-200); }   /* tuck up close under the title */
+
+/* icon-nodes stacked down the vertical line; dot on the line, description to its right */
+.htl__nodes { position: relative; display: flex; flex-direction: column; gap: clamp(14px, 2.2vh, 28px); }
+.htl__line { position: absolute; left: calc(var(--htl-dot) / 2 - 1px); top: calc(var(--htl-dot) / 2); bottom: calc(var(--htl-dot) / 2); width: 2px; background: rgba(255,255,255,.16); transform-origin: top; }
+.htl__node { display: flex; align-items: center; gap: clamp(16px, 2vw, 28px); }
+.htl__dot { position: relative; z-index: 1; flex: none; width: var(--htl-dot); height: var(--htl-dot); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #0d141f; border: 1px solid rgba(255,255,255,.18); box-shadow: 0 0 26px rgba(159,177,205,.14); }
+.htl__dot svg { width: 22px; height: 22px; color: var(--accent-2); stroke-width: 2; }
+.htl__desc { font-size: clamp(.95rem, 1.1vw, 1.12rem); color: var(--blue-100); line-height: 1.4; }
+
+/* fallback (no JS / reduced-motion): can't lock + swap — stack the two panels and let the section flow */
+html:not(.has-anim) .htl, .has-anim.reduced .htl { height: auto; overflow: visible; }
+html:not(.has-anim) .htl__track, .has-anim.reduced .htl__track { position: static; display: flex; flex-direction: column; gap: clamp(48px, 9vh, 96px); padding-block: 0; }
+html:not(.has-anim) .htl__seg, .has-anim.reduced .htl__seg { height: auto; padding-top: 0; }
+
+/* ===== How we work — VERTICAL STEPPER: centre line, steps alternating L/R, and a glowing
+   scroll-progress head that draws the line downward and lights each node as it passes ===== */
+.has-anim .card.card--flow { padding: var(--nav-h) 0 0; }
+.flow { --flow-pad: clamp(16px, 4.5vh, 52px); --flow-shift: 0px; position: relative; width: min(1060px, 100% - (var(--pad) * 2)); margin-inline: auto; height: calc(100svh - var(--nav-h)); overflow: hidden; padding-block: var(--flow-pad); transform: translateX(var(--flow-shift)); }   /* shift nudges the centre line onto a background grid column */
+/* centre line — faint base + the bright fill that draws downward, with the glowing head at its front.
+   Spans the first node → last node (no empty tails sticking out past the steps). */
+.flow__line { position: absolute; left: 50%; top: calc(12.5% + var(--flow-pad) * 0.75); bottom: calc(12.5% + var(--flow-pad) * 0.75); width: 2px; transform: translateX(-50%); background: rgba(255,255,255,.13); border-radius: 2px; z-index: 0; }
+.flow__fill { position: absolute; top: 0; left: 0; width: 100%; height: 0; border-radius: 2px; background: linear-gradient(180deg, rgba(118,143,181,.35), #dfe9fb); box-shadow: 0 0 9px rgba(118,143,181,.55); }
+.flow__glow { position: absolute; left: 50%; bottom: 0; width: 15px; height: 15px; transform: translate(-50%, 50%); border-radius: 50%; background: #eef4ff; box-shadow: 0 0 10px 3px rgba(224,236,255,.9), 0 0 22px 7px rgba(170,205,255,.7), 0 0 44px 16px rgba(110,150,230,.35); }
+/* steps fill the height; each band centres a node on the line + a card to one side */
+.flow__steps { position: relative; z-index: 1; height: 100%; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.flow__step { position: relative; flex: 1; display: flex; align-items: center; }
+.flow__step--left { justify-content: flex-start; }
+.flow__step--right { justify-content: flex-end; }
+.flow__card { width: min(46%, 440px); }
+.flow__step--left .flow__card { padding-right: clamp(26px, 4vw, 52px); text-align: right; }
+.flow__step--right .flow__card { padding-left: clamp(26px, 4vw, 52px); text-align: left; }
+.flow__node { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 15px; height: 15px; border-radius: 50%; background: #2A3C56; border: 2px solid rgba(255,255,255,.28); z-index: 2; }   /* blue interior; the opaque dot itself masks the line */
+.flow__eyebrow { display: flex; align-items: baseline; gap: 9px; }
+.flow__step--left .flow__eyebrow { justify-content: flex-end; }
+.flow__step--right .flow__eyebrow { justify-content: flex-start; }
+.flow__idx { font-family: var(--font-mono); font-weight: 600; font-size: clamp(.8rem, 1vw, .98rem); letter-spacing: .04em; color: #a9c4ea; }   /* number sits inline, next to the kicker: "01 BRIEF" */
+.flow__kicker { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .16em; font-size: .72rem; color: var(--blue-300); }
+.flow__title { font-family: var(--font-display); font-weight: 500; font-size: clamp(1.25rem, 2.2vw, 1.9rem); line-height: 1.04; letter-spacing: -.01em; color: #fff; margin-top: 8px; }
+.flow__desc { font-size: clamp(.82rem, .95vw, .98rem); line-height: 1.42; color: var(--blue-100); margin-top: 8px; }
+/* phone: single column — line on the left, every card to its right */
+@media (max-width: 720px) {
+  .flow { transform: translateX(var(--flow-shift, 0px)); height: auto; overflow: visible; --flow-pad: 0px; }   /* phone: scrolls tall; --flow-shift nudges the line onto the (cue-centred) grid */
+  .has-anim .card.card--flow { height: auto; min-height: 0; padding: clamp(24px, 6vh, 48px) 0 clamp(40px, 10vh, 80px); }
+  .flow__step { min-height: 52vh; }   /* taller bands → longer line → the draw takes longer to scroll through */
+  .flow__line { left: 20px; transform: none; }
+  .flow__fill { left: 0; }
+  .flow__step, .flow__step--left, .flow__step--right { justify-content: flex-start; }
+  .flow__card { width: auto; max-width: calc(var(--client-width, 100vw) - 78px - var(--flow-shift, 0px)); margin-left: 44px; padding: 0 !important; text-align: left !important; }   /* keep the text inside the viewport, scaling with the line's shift */
+  .flow__step--left .flow__eyebrow, .flow__step--right .flow__eyebrow { justify-content: flex-start; }   /* number + kicker left-aligned, like the title */
+  .flow__node { left: 20px; }
+}
+/* fallback (no JS / reduced-motion): show the full line + all steps, let the section flow */
+html:not(.has-anim) .flow, .has-anim.reduced .flow { height: auto; overflow: visible; }
+html:not(.has-anim) .flow__fill, .has-anim.reduced .flow__fill { height: 100%; }
+html:not(.has-anim) .flow__glow, .has-anim.reduced .flow__glow { display: none; }
 
 /* What we build — opener statement slide */
 .statement__title {
@@ -505,6 +528,12 @@ a { color: inherit; text-decoration: none; }
 .frame__screen:has(video), .frame__screen:has(img) { animation: none; }
 .frame__screen:has(video)::before, .frame__screen:has(img)::before,
 .frame__screen:has(video)::after,  .frame__screen:has(img)::after { content: none; }
+/* class fallback (JS tags screens that hold real media): some browsers don't re-invalidate
+   :has() for ::before/::after content, so the scrubber bar + light sweep can linger over the
+   video. This guarantees they're removed. */
+.frame__screen.has-media { animation: none; }
+.frame__screen.has-media::before, .frame__screen.has-media::after { display: none; content: none; }
+.frame__screen.has-media .slot__tag { display: none; }
 
 /* ============================================================================
    What we build — case-study composition (giant wordmark · big centered object ·
@@ -566,19 +595,21 @@ a { color: inherit; text-decoration: none; }
    own height so the line bisects it. */
 .case__foot--linked .case__desc { grid-row: 1; align-self: end; transform: translateY(50%); }
 .case__more {
+  position: relative;
   grid-column: 1; grid-row: 2; justify-self: start;
   display: inline-flex; align-items: center; gap: 8px;
   font-family: var(--font-mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
   color: #fff; border-bottom: 1px solid rgba(255,255,255,.35); padding-bottom: 4px;
   transition: color .2s var(--ease), border-color .2s var(--ease);
 }
+.case__more::before { content: ''; position: absolute; inset: -12px 0; }   /* taller tap target; keeps the underline tight to the text */
 .case__more:hover { border-color: #fff; }
 .case__more .arrow { font-family: var(--font-mono); transition: transform .2s var(--ease); }
 .case__more:hover .arrow { transform: translateX(4px); }
 
 /* What we build — "Your project here" finale card */
 .next-card {
-  position: relative; z-index: 2; max-width: 460px;
+  position: relative; z-index: 2; max-width: min(460px, 100% - var(--pad) * 2);
   background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.14);
   border-radius: 18px; padding: clamp(30px, 3.4vw, 52px);
   box-shadow: 0 0 26px rgba(159,177,205,.12), 0 10px 30px rgba(0,0,0,.20);   /* same soft glow as the offering cards */
@@ -663,7 +694,10 @@ a { color: inherit; text-decoration: none; }
   background-image:
     linear-gradient(var(--texture) 1px, transparent 1px),
     linear-gradient(90deg, var(--texture) 1px, transparent 1px);
-  background-size: 64px 64px;       /* matches the hero grid so columns line up across the seam */
+  background-size: var(--grid-cell) var(--grid-cell);       /* matches the hero grid so columns line up across the seam */
+  background-position-x: var(--stage-grid-x, 0px);   /* JS nudges columns sideways so one lands under the timeline line */
+  background-position-y: var(--stage-grid-y, 0px);   /* JS nudges rows down so a horizontal line lands on the bottom (testimonials) seam */
+  border-bottom: 1px solid var(--texture);           /* the last line, exactly on the seam — this is the testimonials' top divider */
   opacity: .4;
 }
 /* cards now flow as a vertical sequence of full-screen sections; each self-pins */
@@ -705,7 +739,7 @@ a { color: inherit; text-decoration: none; }
 /* ============================================================================
    TESTIMONIALS — Kind words (auto-rotating, word-illuminated carousel)
    ========================================================================== */
-.quotes { position: relative; overflow: hidden; background: var(--blue-950); color: #fff; border-top: 1px solid rgba(255,255,255,.05); border-bottom: 1px solid rgba(255,255,255,.05); }   /* whisper-quiet hairlines opening and closing the section (a touch fainter than the grid lines) */
+.quotes { position: relative; overflow: hidden; background: var(--blue-950); color: #fff; border-bottom: 1px solid rgba(255,255,255,.05); }   /* the stage grid's own last line (set by alignGrids to land on this seam) is the top divider, so no border-top here */
 /* Faint 64px square grid (Start-a-project section). JS (alignGrids) sets --grid-y so
    its rows continue the hero/stage lattice. Kind words + footer stay plain color. */
 .grid-bg {
@@ -713,7 +747,7 @@ a { color: inherit; text-decoration: none; }
   background-image:
     linear-gradient(var(--texture) 1px, transparent 1px),
     linear-gradient(90deg, var(--texture) 1px, transparent 1px);
-  background-size: 64px 64px;
+  background-size: var(--grid-cell) var(--grid-cell);
   background-position: 0 var(--grid-y, 0);
 }
 .quotes__fig {
@@ -744,9 +778,10 @@ a { color: inherit; text-decoration: none; }
 .quotes__bars { display: flex; align-items: center; gap: 10px; margin-top: 48px; }
 .quotes__bar {
   position: relative; width: 32px; height: 3px; padding: 0; border: 0; cursor: pointer;
-  border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.15); transition: background .2s var(--ease);
+  border-radius: 999px; background: rgba(255,255,255,.15); transition: background .2s var(--ease);
 }
 .quotes__bar:hover { background: rgba(255,255,255,.25); }
+.quotes__bar::before { content: ''; position: absolute; inset: -21px -8px; }   /* invisible ~45px tap target; the visible 3px bar and the layout are unchanged */
 .quotes__fill {
   position: absolute; inset: 0; border-radius: 999px; background: rgba(255,255,255,.75);
   transform: scaleX(0); transform-origin: left;
@@ -824,6 +859,13 @@ a { color: inherit; text-decoration: none; }
   .footer__cols { grid-template-columns: repeat(3, 1fr); }
 }
 
+/* Below the 3-column threshold, stack the baseline (copyright + Est.) left-aligned instead of a
+   right-anchored row — otherwise the fixed back-to-top button overlaps "Est. 2026" at the bottom
+   of the scroll in the 561-767px band. */
+@media (max-width: 767px) {
+  .footer__base { flex-direction: column-reverse; align-items: flex-start; gap: 14px; }
+}
+
 /* ============================================================================
    BACK TO TOP — fixed round button, bottom-right; appears past the first screen
    ========================================================================== */
@@ -855,7 +897,6 @@ a { color: inherit; text-decoration: none; }
   :root { --nav-h: 130px; }
   .nav__inner { align-items: flex-start; padding: 18px var(--pad) 0; gap: 12px; }   /* logo + CTA a touch lower from the top */
   .nav.is-visible { animation: navDrop .5s var(--ease) backwards; }                  /* clear drop-in on appear; `backwards` (not `both`) so the end-state fill doesn't swallow the .nav slide-up+fade exit transition */
-  .nav__burger { display: none !important; }
   .nav__links, .nav__cta { display: flex; }
   .nav__mark img { width: 30px; }
   .nav__the { font-size: 8px; letter-spacing: .26em; }
@@ -869,10 +910,6 @@ a { color: inherit; text-decoration: none; }
   .nav__cta { padding: 7px 13px; font-size: 11px; }   /* smaller CTA */
 
   .card__grid, .card__grid--step { grid-template-columns: 1fr; gap: 32px; }
-  /* keep the two offering cards SIDE-BY-SIDE on portrait tablet/mobile too (landscape already does).
-     minmax(0,1fr) forces two EQUAL halves (plain 1fr lets a card with longer text grab more width). */
-  .card__grid--duo { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(14px, 2.6vw, 28px); align-items: stretch; }
-  .has-anim .card.card--duo { padding-top: var(--nav-h); }   /* center the pair in the area below the nav (no fixed bias that crowds short tablets) */
 
   /* 02 (tablet + phone): background wordmark gone — lift the case / statement / next content so it isn't bottom-heavy */
   .card--case .case__object { top: 40%; }
@@ -884,11 +921,13 @@ a { color: inherit; text-decoration: none; }
   .frame--phone { max-width: 188px; }
   .frame--browser { max-width: 100%; }
   .card__list { grid-template-columns: 1fr; }
+
+  /* 01 timeline: narrower centred block on iPad/tablet so the line + dots sit more towards the middle */
+  .htl { width: min(470px, 100% - (var(--pad) * 2)); }
 }
 
 @media (max-width: 560px) {
   .cta__title { white-space: normal; text-wrap: balance; font-size: clamp(2.75rem, 9vw, 5.5rem); }   /* phones: let the headline wrap at its original scale */
-  .footer__base { flex-direction: column-reverse; align-items: flex-start; gap: 14px; }
   .hero__ticks { display: none; }
   .card--step .card__grid--step { grid-template-columns: 1fr; }
 
@@ -902,19 +941,17 @@ a { color: inherit; text-decoration: none; }
   /* page counter (HUD) — smaller so it doesn't feel oversized on a phone */
   .has-anim .stage__hud { font-size: 9px; gap: 7px; bottom: 16px; letter-spacing: .1em; }
 
-  /* back-to-top: the HUD is tiny on phones (bottom 16px), so the raised state doesn't need the
+  /* back-to-top: a touch smaller on phones so it doesn't dominate the corner */
+  .backtop { width: 40px; height: 40px; }
+  .backtop svg { width: 18px; height: 18px; }
+  /* the HUD is tiny on phones (bottom 16px), so the raised state doesn't need the
      full desktop lift — sit it just above the counter in the 01/02/03 sections instead of high up */
   .backtop.is-raised { bottom: 44px; }
 
-  /* phone: the two offering cards sit SIDE-BY-SIDE — taller cards with generous breathing room between elements */
-  .card__grid--duo { gap: 12px; }
-  .do-card { padding: 22px 15px; border-radius: 12px; }
-  .do-card__title { font-size: clamp(1.15rem, 5.2vw, 1.5rem); }
-  .do-card__tagline { font-size: .82rem; margin-top: 7px; }
-  .do-card .card__desc { font-size: .82rem; line-height: 1.4; margin-top: 7px; }
-  .do-card .card__list { margin-top: 18px; gap: 14px; }
-  .do-card .card__list li { font-size: 11.5px; line-height: 1.4; }
-  .do-card .card__list li .msk__i { gap: 9px; }
+  /* phone: same vertical timeline, smaller dots (line + indent track --htl-dot) */
+  .htl { --htl-dot: 48px; }
+  .htl__name { font-size: clamp(1.9rem, 9vw, 2.6rem); }
+  .htl__desc { font-size: clamp(.9rem, 3.6vw, 1.05rem); max-width: calc(var(--client-width, 100vw) - 131px - var(--htl-shift, 0px)); }   /* wrap inside the viewport, scaling with the timeline's shift */
 
   /* 02 case: one left-aligned column on phones — title → description → See more */
   /* .card--case specificity so this beats the iPad rule (.card--case .case__foot) above. On SHORT phones
@@ -943,7 +980,6 @@ a { color: inherit; text-decoration: none; }
   /* a compact single-row nav (self-contained, so it works whether the base was desktop or tablet) */
   :root { --nav-h: clamp(72px, 15vh, 104px); }
   .nav__inner { align-items: center; padding: 0 var(--pad); }
-  .nav__burger { display: none !important; }
   .nav__links, .nav__cta { display: flex; }
   .nav__mark img { width: 28px; }
   .nav__the { font-size: 8px; letter-spacing: .26em; }
@@ -955,15 +991,19 @@ a { color: inherit; text-decoration: none; }
   .nav__idx { font-size: 9px; }
   .nav__cta { padding: 7px 14px; font-size: 12px; }
 
-  /* 01 — duo SIDE-BY-SIDE (use the width, not the height), scaled to fit */
-  .card__grid--duo { grid-template-columns: 1fr 1fr; gap: clamp(16px, 3vw, 44px); }
-  .has-anim .card.card--duo { padding: var(--nav-h) var(--pad) 0; }
-  .do-card { padding: clamp(12px, 2.4vh, 26px); }
-  .do-card__title { font-size: clamp(1.2rem, 3.6vh, 2.2rem); }
-  .do-card__tagline { font-size: clamp(.78rem, 1.7vh, 1.05rem); margin-top: 3px; }
-  .do-card .card__desc { font-size: clamp(.78rem, 1.7vh, 1rem); line-height: 1.35; margin-top: 8px; }
-  .do-card .card__list { margin-top: 9px; gap: clamp(3px, 1vh, 10px); }
-  .do-card .card__list li { font-size: clamp(.72rem, 1.55vh, .9rem); line-height: 1.3; }
+  /* 01 — timeline scaled to the short height (dots + gaps too, so all 6 icons fit without the last clipping).
+     The vh maxes are capped at their 600px-height values, so every short-landscape display 600px and taller
+     (Nest Hub 600 ↔ Nest Hub Max 800) renders the timeline identically; only sub-600 landscape phones scale down. */
+  .has-anim .card.card--steps { padding: var(--nav-h) var(--pad) 0; }
+  .htl { --htl-dot: clamp(38px, 8vh, 48px); }
+  /* fill the panel and centre the timeline vertically, so a taller short-landscape screen (Nest Hub Max 800)
+     shows the same centred block as the shorter one (Nest Hub 600) instead of a top-anchored block with a big
+     blank strip below it. The JS pan reads each panel's offsetHeight, so a full-height panel pans cleanly. */
+  .htl__seg { gap: clamp(8px, 1.9vh, 11px); padding-top: 0; min-height: calc(100svh - var(--nav-h)); justify-content: center; }
+  .htl__name { font-size: clamp(1.7rem, 7vh, 2.625rem); }
+  .htl__tag { font-size: .9rem; margin-top: 2px; }
+  .htl__desc { font-size: .82rem; }
+  .htl__dot svg { width: clamp(18px, 3.4vh, 20px); height: clamp(18px, 3.4vh, 20px); }
 
   /* 02 — BIGGER device, sized to the available height (viewport − nav − foot/HUD) so it scales correctly
      across landscape heights and the overhanging phone always clears the title/desc */
@@ -998,6 +1038,17 @@ a { color: inherit; text-decoration: none; }
   .case__desc { font-size: clamp(.72rem, 2.2vh, .95rem); max-width: 34ch; }
   .case__foot { bottom: clamp(12px, 3.4vh, 24px); row-gap: 4px; }
   .has-anim .stage__hud { bottom: clamp(6px, 1.4vh, 12px); }
+}
+
+/* ============================================================================
+   TOUCH DEVICES — give the small inline text links a comfortable tap height.
+   Nav links use padding + matching negative margin so the hit area grows to ~44px
+   without shifting the carefully-tuned nav layout; footer links just gain a little
+   row padding (extra separation is welcome there).
+   ========================================================================== */
+@media (pointer: coarse) {
+  .nav__links a { padding: 11px 0; margin: -11px 0; }
+  .footer__col a { padding-block: 6px; }
 }
 
 /* ============================================================================

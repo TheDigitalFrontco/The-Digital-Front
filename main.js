@@ -183,7 +183,6 @@
     for (var i = 0; i < jumpers.length; i++) {
       jumpers[i].addEventListener('click', function (e) {
         e.preventDefault();
-        if (window.__closeMenu) window.__closeMenu();
         var key = this.getAttribute('data-jump');
         scrollToY(targetFor(key));
       });
@@ -281,13 +280,11 @@
     }
     // (b) clip-path wipe of a whole panel (bg + border + content): the duo's two cards, the "next" CTA card
     function cardClipOf(card) {
-      if (card.classList.contains('card--duo'))  return toArr(card.querySelectorAll('.do-card'));
       if (card.classList.contains('card--next')) return keep([card.querySelector('.next-card')]);
       return [];
     }
     // STAGE 2 — the TEXT (title + copy) that clip-reveals AFTER the card, with a quick gap
     function maskTargetsOf(card) {
-      if (card.classList.contains('card--duo'))       return toArr(card.querySelectorAll('.do-card__title, .do-card__tagline, .do-card .card__list li'));   // title, tagline AND every bullet all use the mask reveal
       if (card.classList.contains('card--statement')) return keep([card.querySelector('.statement__title')]);
       if (card.classList.contains('card--case'))      return keep([card.querySelector('.case__title'), card.querySelector('.case__desc')]);
       if (card.classList.contains('card--next'))      return keep([card.querySelector('.next-card__kicker'), card.querySelector('.next-card__title'), card.querySelector('.next-card__desc')]);
@@ -318,6 +315,10 @@
       card.__masks     = maskTargetsOf(card).map(maskWrap);   // stage-2 text inners
       card.__cardMasks = cardMaskOf(card).map(maskWrap);      // stage-1 visual inners (content-mask)
       card.__cardClips = cardClipOf(card);                    // stage-1 panels (clip-path wipe)
+      if (card.classList.contains('card--steps'))             // each panel's number, title, tagline mask-reveal individually (one by one)
+        toArr(card.querySelectorAll('.htl__num, .htl__name, .htl__tag')).forEach(maskWrap);
+      if (card.classList.contains('card--flow'))              // each step's number, sous-titre, title, description mask-reveal one by one
+        toArr(card.querySelectorAll('.flow__idx, .flow__kicker, .flow__title, .flow__desc')).forEach(maskWrap);
     });
 
     var mm = gsap.matchMedia();
@@ -333,6 +334,9 @@
           seen[section] = (seen[section] || 0) + 1;
           var secIdx = seen[section];
           var isLast = i === cards.length - 1;
+          // phone: the 03 stepper is un-pinned (scrolls), so the card just before it must RESERVE its
+          // scroll (pinSpacing) — otherwise the flow slides up over it and overlaps the previous section.
+          var beforeFlowMobile = (window.matchMedia && window.matchMedia('(max-width: 720px)').matches) && cards[i + 1] && cards[i + 1].classList.contains('card--flow');
 
           var ghosts    = toArr(card.querySelectorAll('.card__ghost, .case__word'));
           var isStatement = card.classList.contains('card--statement');
@@ -346,6 +350,11 @@
           var devSeq    = devDesks.concat(devPhones);   // per-device order: desktops/tablet, then phones. Reveal walks it; exit walks it in reverse — so each element appears AND leaves on its own.
           var more      = card.querySelector('.case__more');           // optional "See more" portfolio link (AI Videos case only)
           var textMasks = card.__masks || [];        // stage-2 text inners
+          var isSteps   = card.classList.contains('card--steps');
+          var isFlow    = card.classList.contains('card--flow');
+          var htlEl     = isSteps ? card.querySelector('.htl') : null;
+          var htlTrack  = isSteps ? card.querySelector('.htl__track') : null;
+          var htlReveal = isSteps ? toArr(card.querySelectorAll('[data-htl-reveal]')) : [];   // segment headings + icon-nodes, in pan order
           var cardMasks = card.__cardMasks || [];    // stage-1 visual inners (content-mask)
           var cardClips = card.__cardClips || [];    // stage-1 panels (clip-path wipe)
           var hasCard   = (cardMasks.length + cardClips.length) > 0 || !!hero;
@@ -365,15 +374,39 @@
           if (ghosts.length)    gsap.set(ghosts,    { opacity: 0 });
           if (lifts.length)     gsap.set(lifts,     { opacity: 0, y: 52 });
           if (textMasks.length) gsap.set(textMasks, { opacity: 0, y: '100%' });
+          if (isSteps) {
+            if (htlTrack) gsap.set(htlTrack, { y: 0 });
+            var htlHeadInners = toArr(card.querySelectorAll('.htl__head .msk__i'));
+            var htlDots  = toArr(card.querySelectorAll('.htl__dot'));
+            var htlDescs = toArr(card.querySelectorAll('.htl__desc'));
+            var htlLines = toArr(card.querySelectorAll('.htl__line'));
+            if (htlHeadInners.length) gsap.set(htlHeadInners, { opacity: 0, y: '100%' });   // title line + tagline wait below their mask edge
+            if (htlDots.length)  gsap.set(htlDots,  { scale: 0 });            // dots POP in (kept opaque), so the line never shows through them
+            if (htlDescs.length) gsap.set(htlDescs, { opacity: 0, x: -12 });
+            if (htlLines.length) gsap.set(htlLines, { scaleY: 0 });           // the vertical line draws downward
+          }
+          if (isFlow) {
+            var flowLine0 = card.querySelector('.flow__line');
+            var flowFill0 = card.querySelector('.flow__fill');
+            var flowNodes0 = toArr(card.querySelectorAll('.flow__node'));
+            if (flowLine0) gsap.set(flowLine0, { opacity: 0 });               // line + glow hidden until this card is active (no leak into the card sliding over it)
+            if (flowFill0) gsap.set(flowFill0, { height: '0%' });             // the line draws from nothing
+            if (flowNodes0.length) gsap.set(flowNodes0, { scale: 0.66, opacity: 0 });   // nodes fade + pop as the head reaches them
+            var flowInners0 = toArr(card.querySelectorAll('.flow__card .msk__i'));
+            if (flowInners0.length) gsap.set(flowInners0, { y: '110%', opacity: 0 });   // number/kicker/title/desc each wait below their own mask edge
+          }
 
+          // On phone the 03 stepper doesn't fit one screen, so DON'T pin it — let it scroll past with room
+          // to breathe; the line/glow/reveal are driven by the section moving through the viewport instead.
+          var isFlowMobile = isFlow && window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
           var tl = gsap.timeline({
             scrollTrigger: {
               trigger: card,
-              start: 'top top',
-              end: 'bottom top',
+              start: isFlowMobile ? 'top 20%' : 'top top',
+              end: isFlowMobile ? 'bottom bottom' : (isSteps ? function () { return '+=' + Math.round((window.innerHeight || 800) * 2.4); } : isFlow ? function () { return '+=' + Math.round((window.innerHeight || 800) * 2); } : 'bottom top'),   // 01 pans ~2.4 screens; desktop 03 draws over ~2 screens (line takes longer); phone 03 finishes only while it still fills the screen
               scrub: true,
-              pin: card,
-              pinSpacing: isLast,   // tight (no spacer) between cards; keep the last card's spacer so Testimonials sits below the stage
+              pin: isFlowMobile ? false : card,
+              pinSpacing: beforeFlowMobile ? true : (isFlowMobile ? false : (isLast || isSteps || isFlow)),   // steps / flow / last reserve scroll; phone 03 scrolls, but the card before it reserves so 03 lands below it
               // the pinned card is the source of truth for the active section + bg
               onUpdate: function (self) {
                 setActive(section, secIdx);
@@ -391,18 +424,52 @@
           card.__st = tl.scrollTrigger;   // used by the nav jump-to (land at the section's first card)
 
           // reveal — the CARD visual in FIRST; the TEXT then clips up a beat later
-          if (card.classList.contains('card--duo')) {
-            // 01 "What we do": the two cards reveal in sequence, and INSIDE each card every element —
-            // title, tagline, then each bullet — appears one after another (its own staggered reveal).
-            card.__landTime = 1.8;   // both cards fully revealed + held here → nav jump-to lands on the complete layout
-            toArr(card.querySelectorAll('.do-card')).forEach(function (dc, di) {
-              var at = leadIn + di * 0.5;   // di=1 (Websites) begins ~when AI Videos has revealed
-              // every element — title, tagline, then each bullet — uses the SAME mask reveal
-              // (its inner slides up from behind a hidden edge), one after another.
-              var inners = toArr(dc.querySelectorAll('.do-card__title, .do-card__tagline, .card__list li'))
-                             .map(function (el) { return el.__mi; }).filter(Boolean);
-              tl.to(dc, { ease: EASE, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.4 }, at);
-              if (inners.length) tl.to(inners, { ease: EASE, y: '0%', opacity: 1, duration: 0.32, stagger: 0.045 }, at + 0.15);
+          if (isSteps) {
+            // 01 "What we do": two LOCKED panels. Each element reveals ONE BY ONE — number, then title, then
+            // tagline (each its own mask), then the icons pop in one at a time; nothing pans. The panel then
+            // clears out element-by-element and 02 Websites locks in the same way; then the section moves on.
+            card.__landTime = 0.16;   // nav jump-to lands on the locked opening (number/title/tagline shown)
+            // once 01 is fully revealed it stays put; the strip then pans up by exactly 01's own height, so 02
+            // lands at the TOP the moment 01's last icon clears — 01 never disappears.
+            var htlSegs = toArr(card.querySelectorAll('.htl__seg'));
+            if (htlTrack && htlSegs[0]) tl.to(htlTrack, { y: function () { return -htlSegs[0].offsetHeight; }, ease: 'none', duration: 0.18 }, 0.40);
+            htlSegs.forEach(function (seg, si) {
+              var headInners = toArr(seg.querySelectorAll('.htl__head .msk__i'));   // [ number, title, tagline ]
+              var line = seg.querySelector('.htl__line');
+              var nodes = toArr(seg.querySelectorAll('.htl__node'));
+              var inAt = si === 0 ? 0 : 0.58;                    // 02 reveals at the TOP, the moment 01's last icon clears (the pan has just finished)
+              // number, then title, then tagline each rise out from behind their own mask edge — one by one
+              if (headInners.length) tl.to(headInners, { y: '0%', opacity: 1, ease: EASE, duration: 0.09, stagger: 0.035 }, inAt);
+              if (line) tl.fromTo(line, { scaleY: 0 }, { scaleY: 1, ease: 'none', duration: 0.1 }, inAt + 0.05);   // line draws top→bottom
+              nodes.forEach(function (n, ni) {   // icons pop onto the line (opaque) + labels slide in, one by one
+                var nat = inAt + 0.17 + ni * 0.016;
+                var dot = n.querySelector('.htl__dot');
+                var desc = n.querySelector('.htl__desc');
+                if (dot)  tl.fromTo(dot,  { scale: 0 }, { scale: 1, ease: 'back.out(1.5)', duration: 0.09 }, nat);
+                if (desc) tl.fromTo(desc, { opacity: 0, x: -12 }, { opacity: 1, x: 0, ease: EASE, duration: 0.09 }, nat + 0.02);
+              });
+            });
+          } else if (isFlow) {
+            // 03 "How we work": the centre line DRAWS downward with a glowing head that tracks the scroll.
+            // As the head reaches each step, its number → sous-titre → title → description mask up ONE BY ONE
+            // (each from behind its own edge); scrolling back masks them away in reverse.
+            card.__landTime = 0.05;
+            var fLine = card.querySelector('.flow__line');
+            var fFill = card.querySelector('.flow__fill');
+            var lineTop = fLine ? fLine.getBoundingClientRect().top : 0;
+            var lineH = fLine ? (fLine.getBoundingClientRect().height || 1) : 1;
+            var DRAW = 0.9;   // line fully drawn (head at the bottom) by 0.9
+            if (fLine) tl.fromTo(fLine, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.04 }, 0);   // the track appears only once this card is active
+            if (fFill) tl.fromTo(fFill, { height: '0%' }, { height: '100%', ease: 'none', duration: DRAW }, 0);   // the glowing head rides the fill's front
+            toArr(card.querySelectorAll('.flow__step')).forEach(function (step) {
+              var node = step.querySelector('.flow__node');
+              var frac = 0.5;
+              if (node) { var nr = node.getBoundingClientRect(); frac = ((nr.top + nr.height / 2) - lineTop) / lineH; }
+              var at = DRAW * Math.max(0, Math.min(1, frac));   // fires as the drawing head reaches this node
+              if (node) tl.to(node, { scale: 1.2, opacity: 1, borderColor: 'rgba(224,234,252,.95)', boxShadow: '0 0 16px 3px rgba(170,205,255,.85)', ease: 'back.out(2)', duration: 0.1 }, at);
+              toArr(step.querySelectorAll('.flow__card .msk__i')).forEach(function (inner, ei) {   // [ number, sous-titre, title, description ] — one by one, but TIGHT so all four land before the step scrolls up
+                tl.fromTo(inner, { y: '110%', opacity: 0 }, { y: '0%', opacity: 1, ease: EASE, duration: 0.09 }, at + 0.02 + ei * 0.02);
+              });
             });
           } else if (card.classList.contains('card--case')) {
             // 02 case: TEXT first, then DESKTOP, then PHONE LAST — each device is a true MASK REVEAL
@@ -432,17 +499,9 @@
 
           // exit — text leaves first, then the card visual, handing off to the next card.
           // Skipped on the last card so it stays put and unpins cleanly into Testimonials.
-          if (!isLast && card.classList.contains('card--duo')) {
-            // 01 exit: each element leaves on its own, IN ORDER (mirroring its staggered entrance),
-            // then the card panel wipes shut — same per-element sequencing as the reveal.
-            toArr(card.querySelectorAll('.do-card')).forEach(function (dc, di) {
-              var xat = 2.0 + di * 0.18;   // hold both cards fully shown, THEN exit — AI Videos first, then Websites
-              // each element's mask inner slides up behind its hidden edge (mirror of the reveal), in order
-              var inners = toArr(dc.querySelectorAll('.do-card__title, .do-card__tagline, .card__list li'))
-                             .map(function (el) { return el.__mi; }).filter(Boolean);
-              if (inners.length) tl.to(inners, { ease: EASE, y: '-100%', opacity: 0, duration: 0.28, stagger: 0.03 }, xat);
-              tl.to(dc, { ease: EASE, clipPath: 'inset(0% 0% 100% 0%)', duration: 0.3 }, xat + 0.34);
-            });
+          if (!isLast && isSteps) {
+            // no exit tween — 02 Websites holds at the end of the pin, then the card scrolls away
+            // normally (pinSpacing reserved its scroll) into the next section.
           } else if (!isLast) {
             if (textMasks.length) tl.to(textMasks, { ease: EASE, y: '-100%', opacity: 0, duration: 0.3, stagger: { amount: sameTiming ? 0 : 0.04, from: 'start' } }, 1.65);
             if (more)             tl.to(more,      { ease: EASE, y: -16, opacity: 0, duration: 0.3 }, 1.65);
@@ -591,6 +650,11 @@
      (even off-screen) would jank the pinned scroll. Play each only while it's in
      view, pause it otherwise. Muted + playsinline so autoplay is always allowed. */
   function initVideos() {
+    // drop the placeholder scrubber/sweep on any screen holding real media (:has()+pseudo-content
+    // isn't reliably re-invalidated, so tag it with a class the pseudos key off instead)
+    Array.prototype.slice.call(document.querySelectorAll('.frame__screen')).forEach(function (s) {
+      if (s.querySelector('video, img')) s.classList.add('has-media');
+    });
     var vids = Array.prototype.slice.call(document.querySelectorAll('.frame__screen video'));
     if (!vids.length) return;
     vids.forEach(function (v) { v.muted = true; });   // belt-and-suspenders for autoplay policy
@@ -621,25 +685,6 @@
       new MutationObserver(sync).observe(hud, { attributes: true, attributeFilter: ['class'] });
     }
     sync();
-  }
-
-  /* ---------- Mobile menu ---------- */
-  function initMenu() {
-    var burger = document.querySelector('[data-burger]');
-    var menu = document.querySelector('[data-menu]');
-    if (!burger || !menu) return;
-    function open() {
-      menu.hidden = false; burger.setAttribute('aria-expanded', 'true');
-      document.body.style.overflow = 'hidden'; if (App.lenis) App.lenis.stop();
-    }
-    function close() {
-      menu.hidden = true; burger.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = ''; if (App.lenis) App.lenis.start();
-    }
-    window.__closeMenu = function () { if (!menu.hidden) close(); };
-    burger.addEventListener('click', function () {
-      if (burger.getAttribute('aria-expanded') === 'true') close(); else open();
-    });
   }
 
   /* ---------- "Start a project" popover ---------- */
@@ -684,7 +729,6 @@
       t.addEventListener('click', function (e) {
         e.preventDefault();
         var wasOpen = current === t;
-        if (window.__closeMenu) window.__closeMenu();     // dismiss mobile menu if open
         if (wasOpen) close(); else open(t);
       });
     });
@@ -712,7 +756,6 @@
     var hideTimer = null;
 
     function open() {
-      if (window.__closeMenu) window.__closeMenu();
       if (form) {
         form.classList.remove('has-error'); form.hidden = false;
         var inv = form.querySelectorAll('.form__row.is-invalid');
@@ -831,8 +874,23 @@
   /* ---------- Align hero grid rows with the next section's grid (kills the seam double-line) ---------- */
   function alignGrids() {
     var hero = document.querySelector('.hero');
-    var heroY = hero ? (hero.offsetHeight % 64) : 0;
-    doc.style.setProperty('--hero-grid-y', heroY + 'px');   // hero/stage lattice anchor
+    var stageEl = document.querySelector('.stage');
+    var gridMobile = window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+    var gridShort = !gridMobile && window.matchMedia && window.matchMedia('(orientation: landscape) and (max-height: 820px)').matches;   // short-landscape displays (Nest Hub / Nest Hub Max)
+    var gridTablet = !gridMobile && window.matchMedia && (window.matchMedia('(max-width: 1024px) and (pointer: coarse)').matches || window.matchMedia('(max-width: 900px)').matches || gridShort);
+    var cw = document.documentElement.clientWidth;
+    // grid square: phones = width/6 (6 columns); iPads / short-landscape displays like the Nest Hub = width/12
+    // (12 columns, what iPad-mini's 768/64 shows, so those all match); desktop = fixed 64px. Identical per class.
+    var CELL = Math.round((gridMobile ? cw / 6 : gridTablet ? cw / 12 : 64) * 100) / 100;
+    doc.style.setProperty('--grid-cell', CELL + 'px');
+    doc.style.setProperty('--client-width', cw + 'px');   // real content width (no scrollbar) for text caps that scale with the shifted lines
+    // Slide the whole vertical lattice down by the stage's leftover (height mod 64) so a horizontal grid
+    // line lands exactly on the stage → testimonials seam (the texture's border-bottom draws it). The hero
+    // grid rides the SAME shifted lattice, so hero + stage stay continuous while the bottom seam gets a line.
+    var gap = stageEl ? (Math.round(stageEl.getBoundingClientRect().height) % CELL) : 0;
+    doc.style.setProperty('--stage-grid-y', gap + 'px');
+    var heroY = hero ? (((hero.offsetHeight % CELL) + gap) % CELL) : 0;
+    doc.style.setProperty('--hero-grid-y', heroY + 'px');   // hero/stage lattice anchor (shifted to match the stage grid)
     // Align every flow-section grid (Kind words / Start / Footer) to that same 64px
     // lattice so the rows run continuously down the page instead of restarting per
     // section. --grid-y shifts a section's grid so a line lands where the global
@@ -840,35 +898,69 @@
     var grids = document.querySelectorAll('[data-grid]');
     for (var i = 0; i < grids.length; i++) {
       var top = grids[i].getBoundingClientRect().top + window.scrollY;
-      grids[i].style.setProperty('--grid-y', ((((heroY - top) % 64) + 64) % 64) + 'px');
+      grids[i].style.setProperty('--grid-y', ((((heroY - top) % CELL) + CELL) % CELL) + 'px');
+    }
+    // Where a vertical grid column lands: on PHONES centre it under the hero scroll cue (viewport centre)
+    // so the cue overlaps it dead-centre; on desktop/iPad put it under the 03 stepper's line. The other
+    // section lines (01 timeline, and the flow line on phones) then snap onto this grid below.
+    var sgcx;
+    if (gridMobile) {
+      sgcx = document.documentElement.clientWidth / 2;
+    } else {
+      var sgLine = document.querySelector('.flow__line') || document.querySelector('.htl__line');
+      sgcx = sgLine ? (sgLine.getBoundingClientRect().left + sgLine.getBoundingClientRect().width / 2) : null;
+    }
+    if (sgcx != null) doc.style.setProperty('--stage-grid-x', ((((sgcx - 0.5) % CELL) + CELL) % CELL) + 'px');
+    // 03 stepper line: desktop/iPad keep it dead-centre (the grid is aligned TO it, so no shift). On phones
+    // the grid is centred on the hero cue instead, so nudge the flow line onto the nearest column there.
+    var flowEl = document.querySelector('.flow');
+    var texEl = document.querySelector('.stage__texture');
+    if (flowEl) {
+      var flowLn = flowEl.querySelector('.flow__line');
+      if (gridMobile && flowLn && texEl) {
+        var curFS = parseFloat(getComputedStyle(flowEl).getPropertyValue('--flow-shift')) || 0;
+        var flr2 = flowLn.getBoundingClientRect();
+        var flNat = flr2.left + flr2.width / 2 - curFS;
+        var fgx = parseFloat(getComputedStyle(texEl).backgroundPositionX) || 0;
+        var fcol = fgx + Math.round((flNat - fgx - 0.5) / CELL) * CELL + 0.5;   // nearest column (the left one)
+        flowEl.style.setProperty('--flow-shift', Math.round((fcol - flNat) * 100) / 100 + 'px');
+      } else {
+        flowEl.style.setProperty('--flow-shift', '0px');
+      }
+    }
+    // 01 "what we do" timeline: the grid is locked to the 03 flow line, so nudge the WHOLE timeline
+    // sideways so its own line lands on the nearest grid column too — keeps both section lines on the grid.
+    var htlEl = document.querySelector('.htl');
+    var htlLine = document.querySelector('.htl__line');
+    if (htlEl && htlLine && texEl) {
+      var curHtlShift = parseFloat(getComputedStyle(htlEl).getPropertyValue('--htl-shift')) || 0;
+      var hlr = htlLine.getBoundingClientRect();
+      var htlNatCx = hlr.left + hlr.width / 2 - curHtlShift;                   // line centre without any shift
+      var hgx = parseFloat(getComputedStyle(texEl).backgroundPositionX) || 0;  // where the grid columns sit
+      var htlN = (htlNatCx - hgx - 0.5) / CELL;
+      var htlLeftBias = window.matchMedia && window.matchMedia('(max-width: 720px)').matches;  // phones: snap to the column on the LEFT so the timeline hugs the left
+      var htlCol = hgx + (htlLeftBias ? Math.floor(htlN) : Math.round(htlN)) * CELL + 0.5;   // nearest column (phones snap to the left one)
+      if (gridShort && window.matchMedia('(min-width: 1100px)').matches) htlCol += CELL;   // WIDE short-landscape (Nest Hub Max 1280, not the narrower Nest Hub 1024): nudge the timeline one grid column right
+      htlEl.style.setProperty('--htl-shift', Math.round((htlCol - htlNatCx) * 100) / 100 + 'px');
+    }
+    // hero SCROLL cue: line it up with the same grid lattice (the "middle line")
+    var heroScroll = document.querySelector('.hero__scroll');
+    if (heroScroll && texEl) {
+      var curSS = parseFloat(getComputedStyle(doc).getPropertyValue('--scroll-shift')) || 0;
+      var hsr = heroScroll.getBoundingClientRect();
+      var hsNat = hsr.left + hsr.width / 2 - curSS;                          // cue centre without any shift
+      var gxs = parseFloat(getComputedStyle(texEl).backgroundPositionX) || 0;
+      var cols = gxs + Math.round((hsNat - gxs - 0.5) / CELL) * CELL + 0.5;      // nearest grid-line centre
+      doc.style.setProperty('--scroll-shift', Math.round((cols - hsNat) * 100) / 100 + 'px');
     }
   }
 
-  /* ---------- Align the 01 cards' bullet rows across BOTH cards ----------
-     Each card's bullets wrap to different line counts, so corresponding rows drift apart.
-     Equalise each bullet PAIR (and the taglines) to the taller of the two so every row lines
-     up between the two cards — only mismatched rows get padded, so there's no global whitespace. */
-  function alignDuoBullets() {
-    var duo = document.querySelector('.card--duo');
-    if (!duo) return;
-    var cards = duo.querySelectorAll('.do-card');
-    if (cards.length < 2) return;
-    // rows = tagline + each bullet, in document order (titles are single-word, always one line)
-    var rowsA = Array.prototype.slice.call(cards[0].querySelectorAll('.do-card__tagline, .card__list li'));
-    var rowsB = Array.prototype.slice.call(cards[1].querySelectorAll('.do-card__tagline, .card__list li'));
-    var n = Math.min(rowsA.length, rowsB.length);
-    var i;
-    for (i = 0; i < n; i++) { rowsA[i].style.minHeight = ''; rowsB[i].style.minHeight = ''; }   // reset to natural
-    var maxes = [];
-    for (i = 0; i < n; i++) { maxes[i] = Math.max(rowsA[i].offsetHeight, rowsB[i].offsetHeight); }
-    for (i = 0; i < n; i++) { rowsA[i].style.minHeight = maxes[i] + 'px'; rowsB[i].style.minHeight = maxes[i] + 'px'; }
-  }
 
   /* ---------- Per-section scroll speed ----------
-     Sections 01 (do) + 02 (build) carry the heavy scrubbed card animations, so scrolling there is
-     slowed to a more deliberate pace; everywhere else (hero, 03, testimonials, CTA, footer) keeps the
+     Sections 01 (do), 02 (build) + 03 (work) carry the heavy scrubbed card animations, so scrolling there
+     is slowed to a more deliberate pace; everywhere else (hero, testimonials, CTA, footer) keeps the
      natural speed. Lenis reads its wheel/touch multipliers off the VirtualScroll live, so we just
-     retune them whenever the scroll position crosses into / out of the 01+02 band. */
+     retune them whenever the scroll position crosses into / out of that band. */
   function initSectionScrollSpeed() {
     var l = App.lenis;
     if (!l) { window.addEventListener('load', initSectionScrollSpeed, { once: true }); return; }   // wait for deferred Lenis
@@ -876,9 +968,9 @@
     l.__sectionSpeed = true;                          // guard against double-binding
     var vs = l.virtualScroll;
     var NORMAL = { wheel: 0.7, touch: 0.95 }, SLOW = { wheel: 0.36, touch: 0.54 };
-    // 01 (do) + 02 (build) scroll slow — EXCEPT the 02 opener "A glimpse of the range…" statement,
-    // which has no scrubbed media to dwell on, so it stays at the natural speed.
-    var cards = Array.prototype.slice.call(document.querySelectorAll('[data-card][data-section="do"], [data-card][data-section="build"]'))
+    // 01 (do), 02 (build) + 03 (work) all carry heavy scrubbed card animations, so they scroll slow at the
+    // same deliberate pace — EXCEPT the (now-removed) statement opener, which had no scrubbed media to dwell on.
+    var cards = Array.prototype.slice.call(document.querySelectorAll('[data-card][data-section="do"], [data-card][data-section="build"], [data-card][data-section="work"]'))
       .filter(function (c) { return !c.classList.contains('card--statement'); });
     var cur = null;
     function set(slow) {
@@ -904,7 +996,6 @@
   function boot() {
     initIcons();
     initLenis();
-    initMenu();
     initTestimonials();
     initVideos();
     initBackTop();
@@ -914,13 +1005,9 @@
     initStartPopover();
     initContactForm();
     alignGrids();
-    alignDuoBullets();
-    // re-equalise once the display fonts have loaded (fallback metrics differ → wrong wrap counts)
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignDuoBullets);
 
     window.addEventListener('load', function () {
       alignGrids();
-      alignDuoBullets();
       var a = document.querySelector('.nav__links a.is-active');
       if (a) moveNavIndicator(a);
       if (window.ScrollTrigger) window.ScrollTrigger.refresh();
@@ -930,7 +1017,6 @@
       clearTimeout(rt);
       rt = setTimeout(function () {
         alignGrids();
-        alignDuoBullets();
         var a = document.querySelector('.nav__links a.is-active');
         if (a) moveNavIndicator(a);
         if (window.ScrollTrigger) window.ScrollTrigger.refresh();
