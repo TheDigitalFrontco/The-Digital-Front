@@ -403,7 +403,7 @@
             scrollTrigger: {
               trigger: card,
               start: isFlowMobile ? 'top 20%' : 'top top',
-              end: isFlowMobile ? 'bottom bottom' : (isSteps ? function () { return '+=' + Math.round((window.innerHeight || 800) * 2.4); } : isFlow ? function () { return '+=' + Math.round((window.innerHeight || 800) * 2); } : 'bottom top'),   // 01 pans ~2.4 screens; desktop 03 draws over ~2 screens (line takes longer); phone 03 finishes only while it still fills the screen
+              end: isFlowMobile ? 'bottom bottom' : (isSteps ? function () { return '+=' + Math.round((window.innerHeight || 800) * 2.4); } : isFlow ? function () { return '+=' + Math.round((window.innerHeight || 800) * 2.5); } : 'bottom top'),   // 01 pans ~2.4 screens; desktop 03 draws over ~2.5 screens (line takes longer); phone 03 finishes only while it still fills the screen
               scrub: true,
               pin: isFlowMobile ? false : card,
               pinSpacing: beforeFlowMobile ? true : (isFlowMobile ? false : (isLast || isSteps || isFlow)),   // steps / flow / last reserve scroll; phone 03 scrolls, but the card before it reserves so 03 lands below it
@@ -458,16 +458,24 @@
             var fFill = card.querySelector('.flow__fill');
             var lineTop = fLine ? fLine.getBoundingClientRect().top : 0;
             var lineH = fLine ? (fLine.getBoundingClientRect().height || 1) : 1;
-            var DRAW = 0.9;   // line fully drawn (head at the bottom) by 0.9
+            // Desktop (pinned): 01 Brief fully appears with the line PARKED at the top, then the line travels down to
+            // reveal 02/03/04 — so you don't brush past 01 on entry. Mobile is un-pinned with tall 52vh steps (each step
+            // already gets a full screen of scroll), so there keep the simple "reveal as the head reaches the node" timing.
+            var FLEAD = 0.05;     // small settle after the pin engages (desktop)
+            var S1_DONE = isFlowMobile ? 0 : 0.26;   // desktop: 01 Brief fully revealed by here before the line moves
+            var DRAW = isFlowMobile ? 0.9 : 0.95;    // line fully drawn (head at the bottom) by here
+            var drawFrom = isFlowMobile ? 0 : S1_DONE;
             if (fLine) tl.fromTo(fLine, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.04 }, 0);   // the track appears only once this card is active
-            if (fFill) tl.fromTo(fFill, { height: '0%' }, { height: '100%', ease: 'none', duration: DRAW }, 0);   // the glowing head rides the fill's front
-            toArr(card.querySelectorAll('.flow__step')).forEach(function (step) {
+            if (fFill) tl.fromTo(fFill, { height: '0%' }, { height: '100%', ease: 'none', duration: DRAW - drawFrom }, drawFrom);   // desktop: the draw begins only once 01 Brief has fully appeared
+            toArr(card.querySelectorAll('.flow__step')).forEach(function (step, si) {
               var node = step.querySelector('.flow__node');
               var frac = 0.5;
               if (node) { var nr = node.getBoundingClientRect(); frac = ((nr.top + nr.height / 2) - lineTop) / lineH; }
-              var at = DRAW * Math.max(0, Math.min(1, frac));   // fires as the drawing head reaches this node
+              frac = Math.max(0, Math.min(1, frac));
+              // desktop: 01 Brief up front (head parked), 02/03/04 as the head reaches them; mobile: every step as the head reaches it
+              var at = isFlowMobile ? (DRAW * frac) : (si === 0 ? FLEAD : (S1_DONE + (DRAW - S1_DONE) * frac));
               if (node) tl.to(node, { scale: 1.2, opacity: 1, borderColor: 'rgba(224,234,252,.95)', boxShadow: '0 0 16px 3px rgba(170,205,255,.85)', ease: 'back.out(2)', duration: 0.1 }, at);
-              toArr(step.querySelectorAll('.flow__card .msk__i')).forEach(function (inner, ei) {   // [ number, sous-titre, title, description ] — one by one, but TIGHT so all four land before the step scrolls up
+              toArr(step.querySelectorAll('.flow__card .msk__i')).forEach(function (inner, ei) {   // [ number, sous-titre, title, description ] — one by one, but TIGHT so all four land together
                 tl.fromTo(inner, { y: '110%', opacity: 0 }, { y: '0%', opacity: 1, ease: EASE, duration: 0.09 }, at + 0.02 + ei * 0.02);
               });
             });
