@@ -331,7 +331,7 @@ a { color: inherit; text-decoration: none; }
 .card { position: relative; }
 .card[data-section="do"]    { background: var(--bg-do); }
 .card[data-section="build"] { background: var(--bg-build); }
-.card[data-section="work"]  { background: var(--bg-work); }
+.card[data-section="work"]  { background: var(--bg-do); }   /* match the animated stage bg (JS uses navy for "work"); the teal --bg-work only ever flashed on refresh before JS ran */
 
 .card__ghost {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -54%);
@@ -959,7 +959,7 @@ html:not(.has-anim) .flow__glow, .has-anim.reduced .flow__glow { display: none; 
      keep the same position. svh-based (stable) → no jump when Safari's toolbar hides/shows. */
   .card--case .case__foot { grid-template-columns: 1fr; justify-items: start; row-gap: 12px; padding: 0 var(--pad); bottom: clamp(40px, calc(13svh - clamp(0px, (840px - 100svh) * 0.55, 70px)), 120px); }
   .case__desc { grid-column: 1; grid-row: 2; justify-self: start; text-align: left; max-width: 40ch; }
-  .case__desc-br { display: inline; }   /* phones: break "Responsive websites that stay sharp" / "from phone to desktop." */
+  .case__desc-br { display: inline; }   /* phones: two-line break — "Responsive animated websites that stay sharp" / "from phone to desktop." */
   .case__foot--linked .case__desc { grid-row: 2; align-self: start; transform: none; }   /* undo the desktop centre-offset when stacked */
   .case__more { grid-row: 3; }
 }
