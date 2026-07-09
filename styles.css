@@ -411,7 +411,7 @@ html:not(.has-anim) .htl__seg, .has-anim.reduced .htl__seg { height: auto; paddi
 
 /* ===== How we work — VERTICAL STEPPER: centre line, steps alternating L/R, and a glowing
    scroll-progress head that draws the line downward and lights each node as it passes ===== */
-.has-anim .card.card--flow { padding: var(--nav-h) 0 0; }
+.has-anim .card.card--flow { margin-top: 62vh; padding: var(--nav-h) 0 0; }   /* breathing gap after 02 scrolls out, before How we work — all screens */
 .flow { --flow-pad: clamp(16px, 4.5vh, 52px); --flow-shift: 0px; position: relative; width: min(1060px, 100% - (var(--pad) * 2)); margin-inline: auto; height: calc(100svh - var(--nav-h)); overflow: hidden; padding-block: var(--flow-pad); transform: translateX(var(--flow-shift)); }   /* shift nudges the centre line onto a background grid column */
 /* centre line — faint base + the bright fill that draws downward, with the glowing head at its front.
    Spans the first node → last node (no empty tails sticking out past the steps). */

@@ -333,10 +333,12 @@
           var section = card.getAttribute('data-section');
           seen[section] = (seen[section] || 0) + 1;
           var secIdx = seen[section];
+          card.__navSection = section; card.__navIdx = secIdx;   // remembered so a neighbour can re-point the section indicator on reverse scroll
           var isLast = i === cards.length - 1;
           // phone: the 03 stepper is un-pinned (scrolls), so the card just before it must RESERVE its
           // scroll (pinSpacing) — otherwise the flow slides up over it and overlaps the previous section.
-          var beforeFlowMobile = (window.matchMedia && window.matchMedia('(max-width: 720px)').matches) && cards[i + 1] && cards[i + 1].classList.contains('card--flow');
+          var beforeFlow = cards[i + 1] && cards[i + 1].classList.contains('card--flow');   // the card right before 03 How we work (any screen)
+          var beforeFlowMobile = (window.matchMedia && window.matchMedia('(max-width: 720px)').matches) && beforeFlow;
 
           var ghosts    = toArr(card.querySelectorAll('.card__ghost, .case__word'));
           var isStatement = card.classList.contains('card--statement');
@@ -402,11 +404,11 @@
           var tl = gsap.timeline({
             scrollTrigger: {
               trigger: card,
-              start: isFlowMobile ? 'top 20%' : 'top top',
+              start: isFlowMobile ? 'top 30%' : 'top top',   // phone 03: begin the line draw just as the last case card's content clears the top — fills the brief gap without overlapping 02
               end: isFlowMobile ? 'bottom bottom' : (isSteps ? function () { return '+=' + Math.round((window.innerHeight || 800) * 2.4); } : isFlow ? function () { return '+=' + Math.round((window.innerHeight || 800) * 2.5); } : 'bottom top'),   // 01 pans ~2.4 screens; desktop 03 draws over ~2.5 screens (line takes longer); phone 03 finishes only while it still fills the screen
               scrub: true,
               pin: isFlowMobile ? false : card,
-              pinSpacing: beforeFlowMobile ? true : (isFlowMobile ? false : (isLast || isSteps || isFlow)),   // steps / flow / last reserve scroll; phone 03 scrolls, but the card before it reserves so 03 lands below it
+              pinSpacing: beforeFlow ? true : (isFlowMobile ? false : (isLast || isSteps || isFlow)),   // steps / flow / last reserve scroll; the card before 03 reserves a breathing gap (all screens) so How we work rises in after 02 clears — matches the 01→02 transition
               // the pinned card is the source of truth for the active section + bg
               onUpdate: function (self) {
                 setActive(section, secIdx);
@@ -418,6 +420,14 @@
                 } else {
                   gsap.set(ghosts, { y: -self.progress * ghostDrift });   // 03 step words: fixed px drift
                 }
+              },
+              // scrolling UP past this card's start → the previous card's section is the one now on screen.
+              // The reveal ScrollTriggers don't cover the blank transition gaps, so without this the indicator
+              // stays stuck on the section you're leaving until the neighbour re-activates (long after its
+              // content reappeared). Re-point it immediately to the previous card's section on reverse.
+              onLeaveBack: function () {
+                var prev = cards[i - 1];
+                if (prev) setActive(prev.__navSection, prev.__navIdx);
               }
             }
           });
@@ -507,9 +517,9 @@
 
           // exit — text leaves first, then the card visual, handing off to the next card.
           // Skipped on the last card so it stays put and unpins cleanly into Testimonials.
-          if (!isLast && isSteps) {
-            // no exit tween — 02 Websites holds at the end of the pin, then the card scrolls away
-            // normally (pinSpacing reserved its scroll) into the next section.
+          if (!isLast && (isSteps || beforeFlow)) {
+            // no exit tween (exit-skip, ALL screens) — the 01 Websites panel and the case right before 03
+            // hold at the end of the pin, then scroll away VISIBLE into the next section (no conceal/fade).
           } else if (!isLast) {
             if (textMasks.length) tl.to(textMasks, { ease: EASE, y: '-100%', opacity: 0, duration: 0.3, stagger: { amount: sameTiming ? 0 : 0.04, from: 'start' } }, 1.65);
             if (more)             tl.to(more,      { ease: EASE, y: -16, opacity: 0, duration: 0.3 }, 1.65);
