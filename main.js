@@ -232,6 +232,10 @@
 
     if (!gsap || !ST || prefersReduced) { return; }   // fallback: CSS shows cards in flow
     gsap.registerPlugin(ST);
+    // On mobile the browser address bar shows/hides while scrolling, which only changes the viewport
+    // HEIGHT. Tell ScrollTrigger to ignore those resizes so the pinned cards don't recalc and jump on
+    // every scroll up/down (it keeps using a stable height instead of refreshing on the bar toggle).
+    ST.config({ ignoreMobileResize: true });
 
     var stageBg = document.querySelector('[data-stage-bg]');
     var hudSection = document.querySelector('[data-hud-section]');
@@ -1030,8 +1034,14 @@
       if (a) moveNavIndicator(a);
       if (window.ScrollTrigger) window.ScrollTrigger.refresh();
     });
-    var rt;
+    var rt, lastW = window.innerWidth;
+    var coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
     window.addEventListener('resize', function () {
+      // On touch devices the address bar showing/hiding fires resize with only a HEIGHT change (width
+      // unchanged). Ignore those so we don't re-align grids / refresh ScrollTrigger and jump the layout
+      // on every scroll. A real orientation change swaps the width, so that still recalculates.
+      if (coarsePointer && window.innerWidth === lastW) return;
+      lastW = window.innerWidth;
       clearTimeout(rt);
       rt = setTimeout(function () {
         alignGrids();
